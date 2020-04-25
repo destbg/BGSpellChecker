@@ -6,8 +6,5 @@
   "license": "MIT",
   "dependencies": {
     "express": "^4.17.1"
-  },
-  "engines": {
-    "node": "10.16.3"
   }
 }
