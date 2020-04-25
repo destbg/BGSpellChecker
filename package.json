@@ -1,0 +1,10 @@
+{
+  "name": "bgspellchecker",
+  "version": "1.0.0",
+  "description": "bulgarian spell checker - notepad",
+  "author": "destbg",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}

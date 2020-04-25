@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bulgarian Notepad</title>
+    <link
+      href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="lib\highlight\jquery.highlight-within-textarea.css"
+    />
+    <link rel="stylesheet" href="lib\context-menu\context-menu.css" />
+    <link rel="stylesheet" href="css\main.css" />
+  </head>
+
+  <body>
+    <ul class="options-list">
+      <li class="not-mobile">
+        <label for="newFile" title="Open" style="cursor: pointer;">
+          <i class="fa fa-file"></i>
+        </label>
+        <input
+          id="newFile"
+          type="file"
+          accept="text/plain"
+          style="display: none;"
+        />
+      </li>
+      <li class="not-mobile">
+        <button title="Save">
+          <i class="fa fa-save"></i>
+        </button>
+      </li>
+      <li>
+        <button title="Undo">
+          <i class="fa fa-undo"></i>
+        </button>
+      </li>
+      <li>
+        <button title="Redo">
+          <i class="fa fa-repeat"></i>
+        </button>
+      </li>
+      <li>
+        <button title="Zoom In">
+          <i class="fa fa-search-plus"></i>
+        </button>
+      </li>
+      <li>
+        <button title="Zoom Out">
+          <i class="fa fa-search-minus"></i>
+        </button>
+      </li>
+    </ul>
+    <div class="middle">
+      <textarea id="main-textarea" spellcheck="false"></textarea>
+    </div>
+    <script src="lib\jquery\jquery.js"></script>
+    <script src="lib\highlight\jquery.highlight-within-textarea.js"></script>
+    <script src="lib\string-similarity\string-similarity.js"></script>
+    <script src="lib\context-menu\context-menu.js"></script>
+    <script src="lib\spellcheck\spellcheck.js"></script>
+    <script src="lib\undo-redo\UndoRedo.js"></script>
+    <script src="js\main.js"></script>
+  </body>
+</html>
