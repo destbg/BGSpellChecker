@@ -1,8 +1,11 @@
 (() => {
   const main = $('#main-textarea');
+  const charCount = $('#charCount');
+  const wordCount = $('#wordCount');
+  const corrections = $('#corrections');
   const spell = new SpellChecker();
   const txtHistory = new UndoRedoJs(5);
-  const doneTypingInterval = 1000;
+  const doneTypingInterval = 3 * 1000;
   let typingTimer;
 
   window.replaceWord = (word, replace) => {
@@ -11,30 +14,14 @@
   };
 
   function checkText() {
-    main.highlightWithinTextarea(spell.checkText(main.val()));
-  }
-
-  function doneTyping() {
-    checkText();
-  }
-
-  main.on('keyup', () => {
-    clearTimeout(typingTimer);
-    typingTimer = setTimeout(doneTyping, doneTypingInterval);
-  });
-
-  main.on('keydown', () => {
-    clearTimeout(typingTimer);
-  });
-
-  main.on('input', () => {
     const value = main.val();
-    if (txtHistory.current() !== value) {
+    const current = txtHistory.current();
+    if (current !== value) {
       // Check for pastes, auto corrects..
       if (
-        value.length - txtHistory.current().length > 2 ||
-        value.length - txtHistory.current().length < -2 ||
-        value.length - txtHistory.current().length === 0
+        value.length - current.length > 2 ||
+        value.length - current.length < -2 ||
+        value.length - current.length === 0
       ) {
         // Record the textarea value and force to bypass cooldown
         txtHistory.record(value, true);
@@ -44,6 +31,37 @@
         txtHistory.record(value);
       }
     }
+    const check = spell.checkText(main.val());
+    main.highlightWithinTextarea(check);
+    if (check.length > 0) {
+      corrections.css({ backgroundColor: 'darkred' });
+    } else {
+      corrections.css({ backgroundColor: 'darkmagenta' });
+    }
+    corrections.html(check.length);
+  }
+
+  function userTyping() {
+    clearTimeout(typingTimer);
+    if (!corrections.html().includes('div')) {
+      corrections.css({ backgroundColor: 'darkmagenta' });
+      corrections.html('<div class="loader"></div>');
+    }
+  }
+
+  main.on('keyup', () => {
+    userTyping();
+    typingTimer = setTimeout(() => checkText(), doneTypingInterval);
+  });
+
+  main.on('keydown', () => {
+    userTyping();
+  });
+
+  main.on('input', () => {
+    const value = main.val();
+    charCount.html(value.length);
+    wordCount.html(value.split(' ').filter((f) => f !== '').length);
   });
 
   setTimeout(() => {
@@ -55,7 +73,7 @@
 
   (() => {
     const fontSize = localStorage.getItem('font');
-    if (fontSize) {
+    if (fontSize && document.body.offsetWidth > 768) {
       $(document.body).css({ fontSize });
     }
 
@@ -64,6 +82,7 @@
     request.onreadystatechange = () => {
       if (request.readyState === 4 && request.status === 200) {
         window.allWords = JSON.parse(request.response);
+        $('.loading-bar').remove();
         checkText();
       }
     };
@@ -71,7 +90,7 @@
   })();
 
   function saveFont() {
-    var fontSize =
+    const fontSize =
       parseFloat(
         window
           .getComputedStyle(document.body, null)
@@ -90,11 +109,11 @@
   });
 
   $('button[title="Save"]').on('click', () => {
-    var text = main.val();
+    const text = main.val();
     text = text.replace(/\n/g, '\r\n'); // To retain the Line breaks.
-    var blob = new Blob([text], { type: 'text/plain' });
-    var anchor = document.createElement('a');
-    anchor.download = 'my-filename.txt';
+    const blob = new Blob([text], { type: 'text/plain' });
+    const anchor = document.createElement('a');
+    anchor.download = 'text-file.txt';
     anchor.href = window.URL.createObjectURL(blob);
     anchor.target = '_blank';
     anchor.style.display = 'none';

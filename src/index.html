@@ -13,10 +13,21 @@
       href="lib\highlight\jquery.highlight-within-textarea.css"
     />
     <link rel="stylesheet" href="lib\context-menu\context-menu.css" />
-    <link rel="stylesheet" href="css\main.css" />
+    <link rel="stylesheet" href="main.css" />
   </head>
 
   <body>
+    <div class="loading-bar">
+      <div>
+        <span>Loading</span>
+        <span class="l-1"></span>
+        <span class="l-2"></span>
+        <span class="l-3"></span>
+        <span class="l-4"></span>
+        <span class="l-5"></span>
+        <span class="l-6"></span>
+      </div>
+    </div>
     <ul class="options-list">
       <li class="not-mobile">
         <label for="newFile" title="Open" style="cursor: pointer;">
@@ -44,26 +55,37 @@
           <i class="fa fa-repeat"></i>
         </button>
       </li>
-      <li>
+      <li class="not-mobile">
         <button title="Zoom In">
           <i class="fa fa-search-plus"></i>
         </button>
       </li>
-      <li>
+      <li class="not-mobile">
         <button title="Zoom Out">
           <i class="fa fa-search-minus"></i>
         </button>
       </li>
     </ul>
     <div class="middle">
-      <textarea id="main-textarea" spellcheck="false"></textarea>
+      <textarea
+        id="main-textarea"
+        placeholder="Type here..."
+        spellcheck="false"
+      ></textarea>
     </div>
+    <footer>
+      <p>characters <span id="charCount">0</span></p>
+      <p>words <span id="wordCount">0</span></p>
+      <div id="corrections">
+        <div class="loader"></div>
+      </div>
+    </footer>
     <script src="lib\jquery\jquery.js"></script>
     <script src="lib\highlight\jquery.highlight-within-textarea.js"></script>
     <script src="lib\string-similarity\string-similarity.js"></script>
     <script src="lib\context-menu\context-menu.js"></script>
     <script src="lib\spellcheck\spellcheck.js"></script>
     <script src="lib\undo-redo\UndoRedo.js"></script>
-    <script src="js\main.js"></script>
+    <script src="main.js"></script>
   </body>
 </html>

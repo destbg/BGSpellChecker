@@ -155,7 +155,7 @@
         _match,
         submatch,
       ) {
-        var className = boundaries[+submatch].className;
+        const className = boundaries[+submatch].className;
         if (className) {
           return '<mark class="' + className + '">';
         } else {
