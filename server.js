@@ -4,15 +4,11 @@ const app = express();
 const PORT = process.env.PORT || 4200;
 let words;
 
-require('fs').readFile(
-  path.join(__dirname, 'src', 'bg-words-cyrillic.txt'),
-  'utf8',
-  (_, data) => {
-    data = data.split('\n').filter((f) => f);
-    data.sort((a, b) => a.length - b.length);
-    words = JSON.stringify(data);
-  },
-);
+require('fs').readFile(path.join(__dirname, 'bg-BG.dic'), 'utf8', (_, data) => {
+  data = data.split('\r\n').filter((f) => f);
+  data.sort((a, b) => a.length - b.length);
+  words = JSON.stringify(data);
+});
 
 app.use(express.static(path.join(__dirname, 'src')));
 
