@@ -8,6 +8,20 @@
   const doneTypingInterval = 3 * 1000;
   let typingTimer;
 
+  window.addWord = (word) => {
+    let words = localStorage.getItem('added');
+    if (words) {
+      words = JSON.parse(words);
+      words.push(word);
+    } else {
+      words = [word];
+    }
+    localStorage.setItem('added', JSON.stringify(words));
+    window.allWords.push(word);
+    window.allWords.sort((a, b) => a.length - b.length);
+    checkText();
+  };
+
   window.replaceWord = (word, replace) => {
     main.val(main.val().replace(word, replace));
     checkText();
@@ -82,6 +96,13 @@
     request.onreadystatechange = () => {
       if (request.readyState === 4 && request.status === 200) {
         window.allWords = JSON.parse(request.response);
+        const words = localStorage.getItem('added');
+        if (words) {
+          JSON.parse(words).forEach((word) => {
+            window.allWords.push(word);
+          });
+          window.allWords.sort((a, b) => a.length - b.length);
+        }
         $('.loading-bar').remove();
         checkText();
       }

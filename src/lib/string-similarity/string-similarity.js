@@ -44,7 +44,7 @@ function findBestMatch(mainString) {
     const currentTargetString = window.allWords[i];
     const currentRating = compareTwoStrings(mainString, currentTargetString);
 
-    if (currentRating < 0.7) continue;
+    if (currentRating < 0.6) continue;
     ratings.push({ target: currentTargetString, rating: currentRating });
 
     if (currentRating > ratings[bestMatchIndex].rating) {

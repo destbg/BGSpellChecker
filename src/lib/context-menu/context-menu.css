@@ -20,3 +20,7 @@
 .menu-option:hover {
   background-color: rgb(20, 20, 20);
 }
+
+.menu-add-option {
+  background-color: rgb(50, 30, 30);
+}
