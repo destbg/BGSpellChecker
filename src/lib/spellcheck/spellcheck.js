@@ -1,4 +1,8 @@
 class SpellChecker {
+  constructor() {
+    this.checkedWords = [];
+  }
+
   /**
    * Text spell checking
    * @public
@@ -7,67 +11,45 @@ class SpellChecker {
   checkText(text) {
     const textArr = text
       .split(/[!"#$%&'()*+,./:;<=>?@[\]^_`{|}~\s\da-zA-Z]/g)
-      .filter((word) => word && word !== '-');
+      .filter((word) => word && word !== word.toUpperCase());
 
-    const outObj = {};
+    const outArr = [];
 
     for (let i = 0; i < textArr.length; i++) {
       const checked = this.checkWord(textArr[i]);
-      const checkedList = Array.isArray(checked) ? checked : [checked];
-
-      for (let j = 0; j < checkedList.length; j++) {
-        if (checkedList[j] == null) {
-          outObj[textArr[i]] = true;
-        }
+      if (checked) {
+        this.checkedWords.push(textArr[i].toLowerCase());
+      } else {
+        outArr.push(textArr[i]);
       }
     }
 
-    return Object.keys(outObj);
+    return outArr;
   }
 
   /**
    * Word spell checking
    * @private
    */
-  checkWord(wordProp, recblock) {
-    // Just go away, if the word is not literal
-    if (wordProp == null || wordProp === '' || !isNaN(Number(wordProp))) {
-      return;
-    }
-
+  checkWord(wordProp) {
     // Way of reducing the load-time of dictionary
     // Post-escaping comments from files
     const word = wordProp.replace(/^#/, '');
+    const wordLower = word.toLowerCase();
+
+    if (this.checkedWords.includes(wordLower)) {
+      return true;
+    }
 
     // If the word exists, returns true
     if (window.allWords.includes(word)) {
       return true;
     }
 
-    // Try to remove the case
-    if (window.allWords.includes(word.toLowerCase())) {
+    if (window.allWords.includes(wordLower)) {
       return true;
     }
 
-    // Check for the presence of the add. chars
-    const esymb = "-/'";
-
-    // Checking parts of words
-    for (let i = 0; i < esymb.length; i++) {
-      if (recblock || word.indexOf(esymb[i]) === -1) {
-        continue;
-      }
-
-      const retArray = word.split(esymb[i]).map((item, i) => {
-        if (i === 0) {
-          return this.checkWord(item, true);
-        } else {
-          const res = this.checkWord(item, true);
-          return res || this.checkWord(esymb[i] + item, true);
-        }
-      });
-
-      return retArray;
-    }
+    return false;
   }
 }

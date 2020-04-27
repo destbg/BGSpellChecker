@@ -44,6 +44,11 @@
   background: none transparent !important;
 }
 
+.hwt-content span {
+  position: relative;
+  z-index: 1000;
+}
+
 .hwt-content mark {
   display: inline-block;
   position: relative;
@@ -60,6 +65,7 @@
   transition: height 100ms ease, top 100ms ease;
 }
 
+.hwt-content span:hover mark,
 .hwt-content mark:hover {
   height: 6px;
   top: 7px;

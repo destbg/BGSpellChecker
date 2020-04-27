@@ -5,7 +5,7 @@
   const corrections = $('#corrections');
   const spell = new SpellChecker();
   const txtHistory = new UndoRedoJs(5);
-  const doneTypingInterval = 3 * 1000;
+  const doneTypingInterval = 1000;
   let typingTimer;
 
   window.addWord = (word) => {
@@ -23,7 +23,16 @@
   };
 
   window.replaceWord = (word, replace) => {
-    main.val(main.val().replace(word, replace));
+    main.val(
+      main
+        .val()
+        .replace(
+          word,
+          word[0] === word[0].toUpperCase()
+            ? replace[0].toUpperCase() + replace.substring(1)
+            : replace,
+        ),
+    );
     checkText();
   };
 
@@ -45,6 +54,7 @@
         txtHistory.record(value);
       }
     }
+
     const check = spell.checkText(main.val());
     main.highlightWithinTextarea(check);
     if (check.length > 0) {
@@ -53,6 +63,10 @@
       corrections.css({ backgroundColor: 'darkmagenta' });
     }
     corrections.html(check.length);
+
+    if (value.length === 0) {
+      spell.checkedWords = [];
+    }
   }
 
   function userTyping() {
@@ -130,8 +144,7 @@
   });
 
   $('button[title="Save"]').on('click', () => {
-    const text = main.val();
-    text = text.replace(/\n/g, '\r\n'); // To retain the Line breaks.
+    const text = main.val().replace(/\n/g, '\r\n'); // To retain the Line breaks.
     const blob = new Blob([text], { type: 'text/plain' });
     const anchor = document.createElement('a');
     anchor.download = 'text-file.txt';

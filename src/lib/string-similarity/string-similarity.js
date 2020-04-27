@@ -35,9 +35,8 @@ function editDistance(s1, s2) {
 
 function findBestMatch(mainString) {
   const ratings = [];
-  let bestMatchIndex = 0;
 
-  for (let i = 0, x = 0; i < window.allWords.length; i++) {
+  for (let i = 0; i < window.allWords.length; i++) {
     if (window.allWords[i].length < mainString.length - 2) continue;
     else if (window.allWords[i].length > mainString.length + 2) break;
 
@@ -46,11 +45,6 @@ function findBestMatch(mainString) {
 
     if (currentRating < 0.6) continue;
     ratings.push({ target: currentTargetString, rating: currentRating });
-
-    if (currentRating > ratings[bestMatchIndex].rating) {
-      bestMatchIndex = x;
-    }
-    x++;
   }
 
   ratings.sort((a, b) => b.rating - a.rating);

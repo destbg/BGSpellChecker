@@ -18,7 +18,7 @@ function toggleMenu(command) {
     menuDiv.remove();
     menuDiv = undefined;
   }
-  menuVisible = !menuVisible;
+  menuVisible = command;
 }
 
 function checkIfOutOfScreen() {

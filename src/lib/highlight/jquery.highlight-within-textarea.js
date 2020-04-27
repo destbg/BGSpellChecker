@@ -39,6 +39,10 @@
         this.fixIOS();
       }
 
+      this.isMobile = /Android|webOS|iPhone|iPad|iPod/i.test(
+        navigator.userAgent,
+      );
+
       // plugin function checks this for success
       this.isGenerated = true;
 
@@ -106,7 +110,6 @@
         boundaries.push({
           type: 'start',
           index: range[0],
-          className: range.className,
         });
         boundaries.push({
           type: 'stop',
@@ -154,26 +157,24 @@
       }
 
       // replace start tokens with opening <mark> tags with class name
-      input = input.replace(/\{\{hwt-mark-start\|(\d+)\}\}/g, function (
-        _match,
-        submatch,
-      ) {
-        const className = boundaries[+submatch].className;
-        if (className) {
-          return '<mark class="' + className + '">';
-        } else {
-          return '<mark>';
-        }
-      });
+      input = input.replace(
+        /\{\{hwt-mark-start\|(\d+)\}\}/g,
+        this.isMobile ? '<span><mark>' : '<mark>',
+      );
 
       // replace stop tokens with closing </mark> tags
-      input = input.replace(/\{\{hwt-mark-stop\}\}/g, '</mark>');
+      input = input.replace(
+        /\{\{hwt-mark-stop\}\}/g,
+        this.isMobile ? '</mark></span>' : '</mark>',
+      );
 
       this.$highlights.html(input);
 
-      this.$highlights.children('mark').on('click', (ev) => {
-        return window.openTextChecker(ev);
-      });
+      this.$highlights
+        .children(this.isMobile ? 'span' : 'mark')
+        .on('click', (ev) => {
+          return window.openTextChecker(ev);
+        });
     }
 
     handleScroll() {
