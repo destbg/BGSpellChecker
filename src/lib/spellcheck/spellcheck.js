@@ -10,7 +10,7 @@ class SpellChecker {
    */
   checkText(text) {
     const textArr = text
-      .split(/[!"#$%&'()*+,./:;<=>?@[\]^_`{|}~\s\da-zA-Z]/g)
+      .split(/[!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~\s\da-zA-Z]/g)
       .filter((word) => word && word !== word.toUpperCase());
 
     const outArr = [];

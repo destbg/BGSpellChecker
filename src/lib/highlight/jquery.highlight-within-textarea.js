@@ -90,11 +90,11 @@
         if (
           (index <= 0 ||
             input[index - 1].match(
-              /[!"#$%&'()*+,./:;<=>?@[\]^_`{|}~\s\da-zA-Z]/,
+              /[!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~\s\da-zA-Z]/,
             )) &&
           (index + str.length >= input.length ||
             input[index + str.length].match(
-              /[!"#$%&'()*+,./:;<=>?@[\]^_`{|}~\s\da-zA-Z]/,
+              /[!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~\s\da-zA-Z]/,
             ))
         ) {
           ranges.push([index, index + str.length]);
