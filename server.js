@@ -43,7 +43,7 @@ io.on('connection', (sock) => {
   });
 
   sock.on('similarity', (word) => {
-    if (typeof text != 'string') return;
+    if (typeof word != 'string') return;
 
     sock.emit('string-similarity', spell.findBestMatch(word));
   });
