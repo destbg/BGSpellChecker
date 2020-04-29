@@ -1,26 +1,34 @@
 (() => {
+  const fontSize = localStorage.getItem('font');
+  if (fontSize && document.body.offsetWidth > 768) {
+    $(document.body).css({ fontSize });
+  }
+})();
+
+(() => {
+  const socket = io();
   const main = $('#main-textarea');
   const charCount = $('#charCount');
   const wordCount = $('#wordCount');
   const corrections = $('#corrections');
-  const spell = new SpellChecker();
+  const contextMenu = new ContextMenu(main);
   const txtHistory = new UndoRedoJs(5);
   const doneTypingInterval = 1000;
   let typingTimer;
 
-  window.addWord = (word) => {
-    let words = localStorage.getItem('added');
-    if (words) {
-      words = JSON.parse(words);
-      words.push(word);
+  socket.on('checked', (check) => {
+    main.highlightWithinTextarea(check);
+    if (check.length > 0) {
+      corrections.css({ backgroundColor: 'darkred' });
     } else {
-      words = [word];
+      corrections.css({ backgroundColor: 'darkmagenta' });
     }
-    localStorage.setItem('added', JSON.stringify(words));
-    window.allWords.push(word);
-    window.allWords.sort((a, b) => a.length - b.length);
-    checkText();
-  };
+    corrections.html(check.length);
+  });
+
+  socket.on('string-similarity', (matches) => {
+    contextMenu.createMenu(matches);
+  });
 
   window.replaceWord = (word, replace) => {
     main.val(
@@ -34,6 +42,17 @@
         ),
     );
     checkText();
+  };
+
+  window.openTextChecker = ({ originalEvent, target }) => {
+    originalEvent.preventDefault();
+    contextMenu.parameters = {
+      left: originalEvent.pageX,
+      top: originalEvent.pageY,
+      word: target.innerText,
+    };
+    socket.emit('similarity', target.innerText);
+    return false;
   };
 
   function checkText() {
@@ -55,41 +74,25 @@
       }
     }
 
-    const check = spell.checkText(main.val());
-    main.highlightWithinTextarea(check);
-    if (check.length > 0) {
-      corrections.css({ backgroundColor: 'darkred' });
-    } else {
-      corrections.css({ backgroundColor: 'darkmagenta' });
-    }
-    corrections.html(check.length);
-
-    if (value.length === 0) {
-      spell.checkedWords = [];
-    }
+    socket.emit('check', main.val());
   }
 
-  function userTyping() {
+  main.on('click', () => {
+    if (contextMenu.menuVisible) {
+      contextMenu.toggleMenu(false);
+    }
+  });
+
+  main.on('input', () => {
     clearTimeout(typingTimer);
     if (!corrections.html().includes('div')) {
       corrections.css({ backgroundColor: 'darkmagenta' });
       corrections.html('<div class="loader"></div>');
     }
-  }
-
-  main.on('keyup', () => {
-    userTyping();
-    typingTimer = setTimeout(() => checkText(), doneTypingInterval);
-  });
-
-  main.on('keydown', () => {
-    userTyping();
-  });
-
-  main.on('input', () => {
     const value = main.val();
     charCount.html(value.length);
     wordCount.html(value.split(' ').filter((f) => f !== '').length);
+    typingTimer = setTimeout(() => checkText(), doneTypingInterval);
   });
 
   setTimeout(() => {
@@ -97,32 +100,9 @@
     if (value) {
       txtHistory.record(value, true);
     }
+
+    checkText();
   }, 100);
-
-  (() => {
-    const fontSize = localStorage.getItem('font');
-    if (fontSize && document.body.offsetWidth > 768) {
-      $(document.body).css({ fontSize });
-    }
-
-    const request = new XMLHttpRequest();
-    request.open('GET', window.location.origin + '/words', true);
-    request.onreadystatechange = () => {
-      if (request.readyState === 4 && request.status === 200) {
-        window.allWords = JSON.parse(request.response);
-        const words = localStorage.getItem('added');
-        if (words) {
-          JSON.parse(words).forEach((word) => {
-            window.allWords.push(word);
-          });
-          window.allWords.sort((a, b) => a.length - b.length);
-        }
-        $('.loading-bar').remove();
-        checkText();
-      }
-    };
-    request.send(null);
-  })();
 
   function saveFont() {
     const fontSize =

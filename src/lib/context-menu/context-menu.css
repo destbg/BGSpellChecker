@@ -17,7 +17,7 @@
   cursor: pointer;
 }
 
-.menu-option:hover {
+.option-hover:hover {
   background-color: rgb(20, 20, 20);
 }
 
