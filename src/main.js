@@ -1,4 +1,12 @@
 (() => {
+  const color = localStorage.getItem('color');
+  if (color && color === 'white') {
+    document.documentElement.setAttribute('color', 'white');
+    const element = document.getElementsByClassName('fa-moon-o')[0];
+    element.classList.remove('fa-moon-o');
+    element.classList.add('fa-sun-o');
+  }
+
   const fontSize = localStorage.getItem('font');
   if (fontSize && document.body.offsetWidth > 768) {
     $(document.body).css({ fontSize });
@@ -158,5 +166,29 @@
   $('button[title="Zoom Out"]').on('click', () => {
     $(document.body).css({ fontSize: '-=1px' });
     saveFont();
+  });
+
+  $('button[title="Help"]').on('click', () => {
+    alert(
+      'Just write words in Bulgarian and click on the red underline to correct the word',
+    );
+  });
+
+  $('button[title="Color"]').on('click', () => {
+    let elements = document.getElementsByClassName('fa-moon-o');
+    if (elements.length === 0) {
+      document.documentElement.setAttribute('color', 'dark');
+      elements = document.getElementsByClassName('fa-sun-o');
+      const element = elements[0];
+      element.classList.remove('fa-sun-o');
+      element.classList.add('fa-moon-o');
+      localStorage.setItem('color', 'dark');
+    } else {
+      document.documentElement.setAttribute('color', 'white');
+      const element = elements[0];
+      element.classList.remove('fa-moon-o');
+      element.classList.add('fa-sun-o');
+      localStorage.setItem('color', 'white');
+    }
   });
 })();
