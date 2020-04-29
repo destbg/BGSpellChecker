@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const helmet = require('helmet');
 const SpellChecker = require('./lib/spellcheck');
 
 const app = express();
@@ -29,14 +30,21 @@ fs.readFile(path.join(__dirname, 'bg-BG.txt'), 'utf8', (_, data) => {
   words.sort((a, b) => a.length - b.length);
 });
 
+app.use(helmet());
 app.use(express.static(path.join(__dirname, 'src')));
 
 io.on('connection', (sock) => {
   const spell = new SpellChecker(words);
+
   sock.on('check', (text) => {
+    if (typeof text != 'string') return;
+
     sock.emit('checked', spell.checkText(text));
   });
+
   sock.on('similarity', (word) => {
+    if (typeof text != 'string') return;
+
     sock.emit('string-similarity', spell.findBestMatch(word));
   });
 });
