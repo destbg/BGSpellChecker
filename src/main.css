@@ -111,6 +111,7 @@ input[type='button'] {
   height: 80vh;
   border-radius: 25px;
   padding: 10px;
+  font-size: 14px;
   overflow-y: auto;
 }
 
