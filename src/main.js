@@ -23,8 +23,9 @@
   const txtHistory = new UndoRedoJs(5);
   const doneTypingInterval = 1000;
   let typingTimer;
+  let checkedArr;
 
-  socket.on('checked', (check) => {
+  function changeText(check) {
     main.highlightWithinTextarea(check);
     if (check.length > 0) {
       corrections.css({ backgroundColor: 'darkred' });
@@ -32,6 +33,11 @@
       corrections.css({ backgroundColor: 'darkmagenta' });
     }
     corrections.html(check.length);
+  }
+
+  socket.on('checked', (check) => {
+    checkedArr = check;
+    changeText(check);
   });
 
   socket.on('string-similarity', (matches) => {
@@ -49,7 +55,8 @@
             : replace,
         ),
     );
-    checkText();
+    checkedArr.splice(checkedArr.indexOf(word), 1);
+    changeText(checkedArr);
   };
 
   window.openTextChecker = ({ originalEvent, target }) => {
@@ -100,13 +107,21 @@
     const value = main.val();
     charCount.html(value.length);
     wordCount.html(value.split(' ').filter((f) => f !== '').length);
-    typingTimer = setTimeout(() => checkText(), doneTypingInterval);
+
+    const timerMultiplier = Math.pow(Math.log10(value.length), 0.5);
+    typingTimer = setTimeout(
+      () => checkText(),
+      (timerMultiplier > 1 ? timerMultiplier : 1) * doneTypingInterval,
+    );
   });
 
   setTimeout(() => {
     const value = main.val();
     if (value) {
       txtHistory.record(value, true);
+
+      corrections.css({ backgroundColor: 'darkmagenta' });
+      corrections.html('<div class="loader"></div>');
     }
 
     checkText();
@@ -126,6 +141,13 @@
     const reader = new FileReader();
     reader.onload = () => {
       main.val(reader.result);
+      if (reader.result) {
+        txtHistory.record(reader.result, true);
+
+        corrections.css({ backgroundColor: 'darkmagenta' });
+        corrections.html('<div class="loader"></div>');
+      }
+
       checkText();
     };
     reader.readAsText(event.target.files[0]);
