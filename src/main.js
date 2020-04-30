@@ -108,7 +108,7 @@
     charCount.html(value.length);
     wordCount.html(value.split(' ').filter((f) => f !== '').length);
 
-    const timerMultiplier = Math.pow(Math.log10(value.length), 0.5);
+    const timerMultiplier = Math.pow(Math.log10(value.length), 0.75);
     typingTimer = setTimeout(
       () => checkText(),
       (timerMultiplier > 1 ? timerMultiplier : 1) * doneTypingInterval,
@@ -136,6 +136,10 @@
       ) + 1;
     localStorage.setItem('font', fontSize + 'px');
   }
+
+  $(window).on('beforeunload blur', () => {
+    localStorage.setItem('text', JSON.stringify(txtHistory.stack));
+  });
 
   $('#newFile').on('change', (event) => {
     const reader = new FileReader();
@@ -190,12 +194,6 @@
     saveFont();
   });
 
-  $('button[title="Help"]').on('click', () => {
-    alert(
-      'Just write words in Bulgarian and click on the red underline to correct the word',
-    );
-  });
-
   $('button[title="Color"]').on('click', () => {
     let elements = document.getElementsByClassName('fa-moon-o');
     if (elements.length === 0) {
@@ -212,5 +210,13 @@
       element.classList.add('fa-sun-o');
       localStorage.setItem('color', 'white');
     }
+  });
+
+  $('button[title="Help"]').on('click', () => {
+    $('.help-menu-bg').show();
+  });
+
+  $('.help-menu-bg').on('click', () => {
+    $('.help-menu-bg').hide();
   });
 })();

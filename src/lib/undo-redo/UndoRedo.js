@@ -1,13 +1,15 @@
 class UndoRedoJs {
   constructor(cooldownNumber) {
-    if (!cooldownNumber || isNaN(cooldownNumber) || cooldownNumber <= 0) {
-      this.cooldownNumber = 1;
-    } else {
-      this.cooldownNumber = cooldownNumber;
-    }
-    this.stack = [''];
+    this.cooldownNumber = cooldownNumber;
     this.currentNumber = 0;
     this.currentCooldownNumber = 0;
+
+    const stored = localStorage.getItem('text');
+    if (stored) {
+      this.stack = JSON.parse(stored);
+    } else {
+      this.stack = [''];
+    }
   }
 
   record(data, force) {
