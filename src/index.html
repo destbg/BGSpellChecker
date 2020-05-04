@@ -8,10 +8,7 @@
       href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
       rel="stylesheet"
     />
-    <link
-      rel="stylesheet"
-      href="lib\highlight\jquery.highlight-within-textarea.css"
-    />
+    <link rel="stylesheet" href="lib\highlight\highlight.css" />
     <link rel="stylesheet" href="lib\context-menu\context-menu.css" />
     <link rel="stylesheet" href="main.css" />
   </head>
@@ -99,6 +96,34 @@
         </button>
       </li>
       <li class="not-mobile">
+        <div class="dropdown">
+          <button title="Font size">
+            <i class="fa fa-font"></i>
+          </button>
+          <ul class="dropdown-content">
+            <li>8</li>
+            <li>9</li>
+            <li>10</li>
+            <li>11</li>
+            <li>12</li>
+            <li>14</li>
+            <li>16</li>
+            <li>18</li>
+            <li>20</li>
+            <li>22</li>
+            <li>24</li>
+            <li>26</li>
+            <li>28</li>
+            <li>36</li>
+            <li>48</li>
+            <li>72</li>
+          </ul>
+        </div>
+        <!-- <button title="Font size">
+          <i class="fa fa-font"></i>
+        </button> -->
+      </li>
+      <li class="not-mobile">
         <button title="Zoom In">
           <i class="fa fa-search-plus"></i>
         </button>
@@ -106,6 +131,21 @@
       <li class="not-mobile">
         <button title="Zoom Out">
           <i class="fa fa-search-minus"></i>
+        </button>
+      </li>
+      <li class="not-mobile">
+        <button title="Bold">
+          <i class="fa fa-bold"></i>
+        </button>
+      </li>
+      <li class="not-mobile">
+        <button title="Italic">
+          <i class="fa fa-italic"></i>
+        </button>
+      </li>
+      <li class="not-mobile">
+        <button title="Underline">
+          <i class="fa fa-underline"></i>
         </button>
       </li>
       <li>
@@ -120,11 +160,12 @@
       </li>
     </ul>
     <div class="middle">
-      <textarea
+      <div
         id="main-textarea"
+        contenteditable="true"
         placeholder="Type here..."
         spellcheck="false"
-      ></textarea>
+      ></div>
     </div>
     <footer>
       <p>characters <span id="charCount">0</span></p>
@@ -135,7 +176,7 @@
     </footer>
     <script src="lib\socket.io\socket.io.js"></script>
     <script src="lib\jquery\jquery.js"></script>
-    <script src="lib\highlight\jquery.highlight-within-textarea.js"></script>
+    <script src="lib\highlight\highlight.js"></script>
     <script src="lib\context-menu\context-menu.js"></script>
     <script src="lib\undo-redo\UndoRedo.js"></script>
     <script src="main.js"></script>

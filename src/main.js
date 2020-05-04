@@ -13,6 +13,65 @@
   }
 })();
 
+window.fixHtml = (elements) => {
+  let input = '';
+  for (const elem of elements) {
+    const type = elem.localName;
+    if (type) {
+      const html = elem.outerHTML;
+      input +=
+        html.slice(0, html.indexOf('>') + 1) +
+        window.fixHtml(elem.childNodes) +
+        html.slice(html.lastIndexOf('<'));
+    } else {
+      input += elem.textContent.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+  }
+  return input;
+};
+
+window.getStringRanges = (input, string) => {
+  const ranges = [];
+  const str = string.toLowerCase();
+  let index = 0;
+
+  while (((index = input.indexOf(str, index)), index !== -1)) {
+    if (
+      (index <= 0 ||
+        input[index - 1].match(
+          /[!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~\s\da-zA-Z]/,
+        )) &&
+      (index + str.length >= input.length ||
+        input[index + str.length].match(
+          /[!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~\s\da-zA-Z]/,
+        ))
+    ) {
+      ranges.push([index, index + str.length]);
+    }
+    index += str.length;
+  }
+  return ranges;
+};
+
+window.getTextNodeAtPosition = (root, index) => {
+  const treeWalker = document.createTreeWalker(
+    root,
+    NodeFilter.SHOW_TEXT,
+    function next(elem) {
+      if (index > elem.textContent.length) {
+        index -= elem.textContent.length;
+        return NodeFilter.FILTER_REJECT;
+      }
+      return NodeFilter.FILTER_ACCEPT;
+    },
+  );
+  const c = treeWalker.nextNode();
+  return {
+    node: c ? c : root,
+    position: c ? index : 0,
+  };
+};
+
 (() => {
   const socket = io();
   const main = $('#main-textarea');
@@ -22,8 +81,10 @@
   const contextMenu = new ContextMenu(main);
   const txtHistory = new UndoRedoJs(5);
   const doneTypingInterval = 1000;
+  let pageFontSize;
   let typingTimer;
   let checkedArr;
+  let fontSize;
 
   function changeText(check) {
     main.highlightWithinTextarea(check);
@@ -45,16 +106,18 @@
   });
 
   window.replaceWord = (word, replace) => {
-    main.val(
-      main
-        .val()
-        .replace(
-          word,
-          word[0] === word[0].toUpperCase()
-            ? replace[0].toUpperCase() + replace.substring(1)
-            : replace,
-        ),
-    );
+    const ranges = window.getStringRanges(main.text(), word);
+    ranges.forEach((range) => {
+      const selection = document.getSelection();
+      const startPos = window.getTextNodeAtPosition(main.get(0), range[0]);
+      const endPos = window.getTextNodeAtPosition(main.get(0), range[1]);
+      selection.removeAllRanges();
+      const docRange = new Range();
+      docRange.setStart(startPos.node, startPos.position);
+      docRange.setEnd(endPos.node, endPos.position);
+      selection.addRange(docRange);
+      document.execCommand('insertHTML', false, replace);
+    });
     checkedArr.splice(checkedArr.indexOf(word), 1);
     changeText(checkedArr);
   };
@@ -64,14 +127,17 @@
     contextMenu.parameters = {
       left: originalEvent.pageX,
       top: originalEvent.pageY,
-      word: target.innerText,
+      word:
+        target.innerText.length === 0
+          ? target.parentElement.innerText
+          : target.innerText,
     };
-    socket.emit('similarity', target.innerText);
+    socket.emit('similarity', contextMenu.parameters.word);
     return false;
   };
 
   function checkText() {
-    const value = main.val();
+    const value = main.text();
     const current = txtHistory.current();
     if (current !== value) {
       // Check for pastes, auto corrects..
@@ -81,15 +147,15 @@
         value.length - current.length === 0
       ) {
         // Record the textarea value and force to bypass cooldown
-        txtHistory.record(value, true);
+        txtHistory.record(window.fixHtml(main.contents()), true);
         // Check for single key press, single character paste..
       } else {
         // Record the textarea value
-        txtHistory.record(value);
+        txtHistory.record(window.fixHtml(main.contents()));
       }
     }
 
-    socket.emit('check', main.val());
+    socket.emit('check', main.text());
   }
 
   main.on('click', () => {
@@ -100,11 +166,14 @@
 
   main.on('input', () => {
     clearTimeout(typingTimer);
+    if (fontSize) {
+      fixFontSize();
+    }
     if (!corrections.html().includes('div')) {
       corrections.css({ backgroundColor: 'darkmagenta' });
       corrections.html('<div class="loader"></div>');
     }
-    const value = main.val();
+    const value = main.text();
     charCount.html(value.length);
     wordCount.html(value.split(' ').filter((f) => f !== '').length);
 
@@ -116,35 +185,35 @@
   });
 
   setTimeout(() => {
-    const value = main.val();
-    if (value) {
+    const value = window.fixHtml(main.contents());
+    if (value !== txtHistory.current()) {
       txtHistory.record(value, true);
 
       corrections.css({ backgroundColor: 'darkmagenta' });
       corrections.html('<div class="loader"></div>');
+    } else {
+      main.html(txtHistory.current());
     }
 
-    checkText();
-  }, 100);
-
-  function saveFont() {
-    const fontSize =
+    pageFontSize =
       parseFloat(
         window
           .getComputedStyle(document.body, null)
           .getPropertyValue('font-size'),
       ) + 1;
-    localStorage.setItem('font', fontSize + 'px');
-  }
 
-  $(window).on('beforeunload blur', () => {
+    checkText();
+    main.focus();
+  }, 100);
+
+  $(document.body).on('unload blur', () => {
     localStorage.setItem('text', JSON.stringify(txtHistory.stack));
   });
 
   $('#newFile').on('change', (event) => {
     const reader = new FileReader();
     reader.onload = () => {
-      main.val(reader.result);
+      main.html(reader.result.replace(/</g, '&lt;').replace(/>/g, '&gt;'));
       if (reader.result) {
         txtHistory.record(reader.result, true);
 
@@ -158,7 +227,7 @@
   });
 
   $('button[title="Save"]').on('click', () => {
-    const text = main.val().replace(/\n/g, '\r\n'); // To retain the Line breaks.
+    const text = main.text().replace(/\n/g, '\r\n'); // To retain the Line breaks.
     const blob = new Blob([text], { type: 'text/plain' });
     const anchor = document.createElement('a');
     anchor.download = 'text-file.txt';
@@ -172,26 +241,59 @@
 
   $('button[title="Undo"]').on('click', () => {
     if (txtHistory.undo(true) !== undefined) {
-      main.val(txtHistory.undo());
+      main.html(txtHistory.undo());
       checkText();
     }
   });
 
   $('button[title="Redo"]').on('click', () => {
     if (txtHistory.redo(true) !== undefined) {
-      main.val(txtHistory.redo());
+      main.html(txtHistory.redo());
       checkText();
     }
   });
 
+  $('.dropdown-content')
+    .children('li')
+    .on('click', ({ target }) => {
+      $(document.body).css({ fontSize: target.innerHTML + 'px' });
+      const fontSize =
+        parseFloat(
+          window
+            .getComputedStyle(document.body, null)
+            .getPropertyValue('font-size'),
+        ) + 1;
+      localStorage.setItem('font', fontSize + 'px');
+      main.children('font').css({
+        fontSize:
+          pageFontSize - fontSize > 0
+            ? `+=${fontSize - pageFontSize}px`
+            : `-=${pageFontSize - fontSize}px`,
+      });
+      pageFontSize = fontSize;
+    });
+
   $('button[title="Zoom In"]').on('click', () => {
-    $(document.body).css({ fontSize: '+=1px' });
-    saveFont();
+    changeFontWithinTextarea(4);
   });
 
   $('button[title="Zoom Out"]').on('click', () => {
-    $(document.body).css({ fontSize: '-=1px' });
-    saveFont();
+    changeFontWithinTextarea(-4);
+  });
+
+  $('button[title="Bold"]').on('click', () => {
+    document.execCommand('bold', false, null);
+    main.focus();
+  });
+
+  $('button[title="Italic"]').on('click', () => {
+    document.execCommand('italic', false, null);
+    main.focus();
+  });
+
+  $('button[title="Underline"]').on('click', () => {
+    document.execCommand('underline', false, null);
+    main.focus();
   });
 
   $('button[title="Color"]').on('click', () => {
@@ -219,4 +321,35 @@
   $('.help-menu-bg').on('click', () => {
     $('.help-menu-bg').hide();
   });
+
+  function changeFontWithinTextarea(size) {
+    const selection = document.getSelection();
+    const parent = selection.focusNode.parentElement;
+    const selectionType = selection.type;
+    document.execCommand('fontSize', false, 1);
+    if (parent.localName === 'font') {
+      fontSize = parseFloat(parent.style.fontSize.replace('px', '')) + size;
+    } else {
+      fontSize =
+        parseFloat(
+          window
+            .getComputedStyle(document.body, null)
+            .getPropertyValue('font-size'),
+        ) + size;
+    }
+    if (selectionType === 'Range') {
+      fixFontSize();
+    }
+    main.focus();
+  }
+
+  function fixFontSize() {
+    for (const font of main.children('font')) {
+      if (!font.hasAttribute('style')) {
+        font.removeAttribute('size');
+        font.style.fontSize = fontSize + 'px';
+      }
+    }
+    fontSize = undefined;
+  }
 })();
