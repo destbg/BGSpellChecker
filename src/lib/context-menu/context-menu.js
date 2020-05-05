@@ -51,6 +51,15 @@ class ContextMenu {
         this.toggleMenu(false);
       });
       list.append(listItem);
+    } else {
+      const listItem = $('<li></li>');
+      listItem.html('Add word');
+      listItem.addClass('menu-option menu-add-option');
+      listItem.on('click', () => {
+        this.toggleMenu(false);
+        window.addWord(this.parameters.word);
+      });
+      list.append(listItem);
     }
 
     this.menuDiv.append(list);

@@ -24,7 +24,7 @@
   --color-eight: #3d3d3d;
   --color-nine: #3d4043;
   --color-ten: #6b6b6b;
-  --color-twelve: #ff4747;
+  --color-twelve: #ffabab;
 }
 
 /* GLOBAL */
@@ -171,6 +171,10 @@ input[type='button'] {
   margin: 0;
   width: 100%;
   cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 .dropdown-content li:hover {
@@ -195,6 +199,12 @@ input[type='button'] {
   word-wrap: break-word;
   overflow-x: hidden;
   padding: 0 20px;
+}
+
+#main-textarea:empty:not(:focus):before {
+  content: 'Type here...';
+  color: var(--color-two);
+  font-style: italic;
 }
 
 /* Footer */

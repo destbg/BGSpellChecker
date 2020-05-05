@@ -10,6 +10,7 @@ class UndoRedoJs {
     } else {
       this.stack = [''];
     }
+    this.currentNumber = this.stack.length - 1;
   }
 
   record(data, force) {

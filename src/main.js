@@ -1,18 +1,3 @@
-(() => {
-  const color = localStorage.getItem('color');
-  if (color && color === 'white') {
-    document.documentElement.setAttribute('color', 'white');
-    const element = document.getElementsByClassName('fa-moon-o')[0];
-    element.classList.remove('fa-moon-o');
-    element.classList.add('fa-sun-o');
-  }
-
-  const fontSize = localStorage.getItem('font');
-  if (fontSize && document.body.offsetWidth > 768) {
-    $(document.body).css({ fontSize });
-  }
-})();
-
 window.fixHtml = (elements) => {
   let input = '';
   for (const elem of elements) {
@@ -73,6 +58,23 @@ window.getTextNodeAtPosition = (root, index) => {
 };
 
 (() => {
+  const color = localStorage.getItem('color');
+  if (color && color === 'white') {
+    document.documentElement.setAttribute('color', 'white');
+    const element = document.getElementsByClassName('fa-moon-o')[0];
+    element.classList.remove('fa-moon-o');
+    element.classList.add('fa-sun-o');
+  }
+
+  const fontSize = localStorage.getItem('font');
+  if (fontSize && document.body.offsetWidth > 768) {
+    $(document.body).css({ fontSize });
+  }
+
+  tippy('[data-tippy-content]');
+})();
+
+(() => {
   const socket = io();
   const main = $('#main-textarea');
   const charCount = $('#charCount');
@@ -81,12 +83,22 @@ window.getTextNodeAtPosition = (root, index) => {
   const contextMenu = new ContextMenu(main);
   const txtHistory = new UndoRedoJs(5);
   const doneTypingInterval = 1000;
+  let addedWords = [];
+  let optionUsed = false;
   let pageFontSize;
   let typingTimer;
-  let checkedArr;
   let fontSize;
 
-  function changeText(check) {
+  socket.on('checked', (check) => {
+    const checkLowered = check.map((f) => f.toLowerCase());
+    for (const addedWord of addedWords) {
+      const found = checkLowered.indexOf(addedWord);
+      if (found) {
+        check.splice(found, 1);
+        checkLowered.splice(found, 1);
+      }
+    }
+
     main.highlightWithinTextarea(check);
     if (check.length > 0) {
       corrections.css({ backgroundColor: 'darkred' });
@@ -94,11 +106,6 @@ window.getTextNodeAtPosition = (root, index) => {
       corrections.css({ backgroundColor: 'darkmagenta' });
     }
     corrections.html(check.length);
-  }
-
-  socket.on('checked', (check) => {
-    checkedArr = check;
-    changeText(check);
   });
 
   socket.on('string-similarity', (matches) => {
@@ -106,20 +113,25 @@ window.getTextNodeAtPosition = (root, index) => {
   });
 
   window.replaceWord = (word, replace) => {
-    const ranges = window.getStringRanges(main.text(), word);
+    const ranges = window.getStringRanges(main.text().toLowerCase(), word);
+    const mainElem = main.get(0);
+    replace =
+      word[0] === word[0].toUpperCase()
+        ? replace[0].toUpperCase() + replace.slice(1)
+        : replace;
     ranges.forEach((range) => {
       const selection = document.getSelection();
-      const startPos = window.getTextNodeAtPosition(main.get(0), range[0]);
-      const endPos = window.getTextNodeAtPosition(main.get(0), range[1]);
+      const startPos = window.getTextNodeAtPosition(mainElem, range[0]);
+      const endPos = window.getTextNodeAtPosition(mainElem, range[1]);
       selection.removeAllRanges();
       const docRange = new Range();
       docRange.setStart(startPos.node, startPos.position);
       docRange.setEnd(endPos.node, endPos.position);
       selection.addRange(docRange);
-      document.execCommand('insertHTML', false, replace);
+      document.execCommand('insertText', false, replace);
     });
-    checkedArr.splice(checkedArr.indexOf(word), 1);
-    changeText(checkedArr);
+    optionUsed = true;
+    mainElem.dispatchEvent(new Event('input'));
   };
 
   window.openTextChecker = ({ originalEvent, target }) => {
@@ -136,8 +148,15 @@ window.getTextNodeAtPosition = (root, index) => {
     return false;
   };
 
+  window.addWord = (word) => {
+    addedWords.push(word.toLowerCase());
+    localStorage.setItem('added', JSON.stringify(addedWords));
+    optionUsed = true;
+    mainElem.dispatchEvent(new Event('input'));
+  };
+
   function checkText() {
-    const value = main.text();
+    const value = window.fixHtml(main.contents());
     const current = txtHistory.current();
     if (current !== value) {
       // Check for pastes, auto corrects..
@@ -147,11 +166,11 @@ window.getTextNodeAtPosition = (root, index) => {
         value.length - current.length === 0
       ) {
         // Record the textarea value and force to bypass cooldown
-        txtHistory.record(window.fixHtml(main.contents()), true);
+        txtHistory.record(value, true);
         // Check for single key press, single character paste..
       } else {
         // Record the textarea value
-        txtHistory.record(window.fixHtml(main.contents()));
+        txtHistory.record(value);
       }
     }
 
@@ -177,38 +196,53 @@ window.getTextNodeAtPosition = (root, index) => {
     charCount.html(value.length);
     wordCount.html(value.split(' ').filter((f) => f !== '').length);
 
-    const timerMultiplier = Math.pow(Math.log10(value.length), 0.75);
-    typingTimer = setTimeout(
-      () => checkText(),
-      (timerMultiplier > 1 ? timerMultiplier : 1) * doneTypingInterval,
-    );
+    if (value.length === 0) {
+      main.html('');
+    }
+
+    if (!optionUsed) {
+      const timerMultiplier = Math.pow(Math.log10(value.length), 0.75);
+      typingTimer = setTimeout(
+        () => checkText(),
+        (timerMultiplier > 1 ? timerMultiplier : 1) * doneTypingInterval,
+      );
+    } else {
+      checkText();
+      optionUsed = false;
+    }
   });
 
   setTimeout(() => {
     const value = window.fixHtml(main.contents());
-    if (value !== txtHistory.current()) {
+    const current = txtHistory.current();
+    if (value !== current) {
       txtHistory.record(value, true);
 
       corrections.css({ backgroundColor: 'darkmagenta' });
       corrections.html('<div class="loader"></div>');
-    } else {
-      main.html(txtHistory.current());
+      main.html(current);
     }
 
-    pageFontSize =
-      parseFloat(
-        window
-          .getComputedStyle(document.body, null)
-          .getPropertyValue('font-size'),
-      ) + 1;
+    const words = localStorage.getItem('added');
+    if (words) {
+      addedWords = JSON.parse(words);
+    }
+
+    pageFontSize = parseFloat(
+      window
+        .getComputedStyle(document.body, null)
+        .getPropertyValue('font-size'),
+    );
 
     checkText();
-    main.focus();
   }, 100);
 
-  $(document.body).on('unload blur', () => {
+  function saveText() {
     localStorage.setItem('text', JSON.stringify(txtHistory.stack));
-  });
+  }
+
+  window.onbeforeunload = saveText;
+  window.onblur = saveText;
 
   $('#newFile').on('change', (event) => {
     const reader = new FileReader();
@@ -226,7 +260,7 @@ window.getTextNodeAtPosition = (root, index) => {
     reader.readAsText(event.target.files[0]);
   });
 
-  $('button[title="Save"]').on('click', () => {
+  $('button[data-tippy-content="Save"]').on('click', () => {
     const text = main.text().replace(/\n/g, '\r\n'); // To retain the Line breaks.
     const blob = new Blob([text], { type: 'text/plain' });
     const anchor = document.createElement('a');
@@ -239,14 +273,14 @@ window.getTextNodeAtPosition = (root, index) => {
     document.body.removeChild(anchor);
   });
 
-  $('button[title="Undo"]').on('click', () => {
+  $('button[data-tippy-content="Undo"]').on('click', () => {
     if (txtHistory.undo(true) !== undefined) {
       main.html(txtHistory.undo());
       checkText();
     }
   });
 
-  $('button[title="Redo"]').on('click', () => {
+  $('button[data-tippy-content="Redo"]').on('click', () => {
     if (txtHistory.redo(true) !== undefined) {
       main.html(txtHistory.redo());
       checkText();
@@ -257,46 +291,54 @@ window.getTextNodeAtPosition = (root, index) => {
     .children('li')
     .on('click', ({ target }) => {
       $(document.body).css({ fontSize: target.innerHTML + 'px' });
-      const fontSize =
-        parseFloat(
-          window
-            .getComputedStyle(document.body, null)
-            .getPropertyValue('font-size'),
-        ) + 1;
+      const fontSize = parseFloat(
+        window
+          .getComputedStyle(document.body, null)
+          .getPropertyValue('font-size'),
+      );
       localStorage.setItem('font', fontSize + 'px');
-      main.children('font').css({
-        fontSize:
-          pageFontSize - fontSize > 0
-            ? `+=${fontSize - pageFontSize}px`
-            : `-=${pageFontSize - fontSize}px`,
-      });
+      const children = main.children('font');
+      if (children.length > 0) {
+        optionUsed = true;
+        children.css({
+          fontSize:
+            pageFontSize - fontSize > 0
+              ? `+=${fontSize - pageFontSize}px`
+              : `-=${pageFontSize - fontSize}px`,
+        });
+      }
       pageFontSize = fontSize;
     });
 
-  $('button[title="Zoom In"]').on('click', () => {
+  $('button[data-tippy-content="Zoom In"]').on('click', () => {
+    optionUsed = true;
     changeFontWithinTextarea(4);
   });
 
-  $('button[title="Zoom Out"]').on('click', () => {
+  $('button[data-tippy-content="Zoom Out"]').on('click', () => {
+    optionUsed = true;
     changeFontWithinTextarea(-4);
   });
 
-  $('button[title="Bold"]').on('click', () => {
+  $('button[data-tippy-content="Bold"]').on('click', () => {
+    optionUsed = true;
     document.execCommand('bold', false, null);
     main.focus();
   });
 
-  $('button[title="Italic"]').on('click', () => {
+  $('button[data-tippy-content="Italic"]').on('click', () => {
+    optionUsed = true;
     document.execCommand('italic', false, null);
     main.focus();
   });
 
-  $('button[title="Underline"]').on('click', () => {
+  $('button[data-tippy-content="Underline"]').on('click', () => {
+    optionUsed = true;
     document.execCommand('underline', false, null);
     main.focus();
   });
 
-  $('button[title="Color"]').on('click', () => {
+  $('button[data-tippy-content="Color"]').on('click', () => {
     let elements = document.getElementsByClassName('fa-moon-o');
     if (elements.length === 0) {
       document.documentElement.setAttribute('color', 'dark');
@@ -314,7 +356,7 @@ window.getTextNodeAtPosition = (root, index) => {
     }
   });
 
-  $('button[title="Help"]').on('click', () => {
+  $('button[data-tippy-content="Help"]').on('click', () => {
     $('.help-menu-bg').show();
   });
 

@@ -39,6 +39,10 @@
             the list of correct words to appear
           </li>
           <li>
+            The circle on the bottom right will display the number of incorrect
+            words
+          </li>
+          <li>
             The saved notepad's text will be deleted when you delete your
             browsing history/cache or run disk cleaning application (E.g.
             Windows Disk cleanup / CCleaner).
@@ -70,7 +74,7 @@
     </div>
     <ul class="options-list">
       <li class="not-mobile">
-        <label for="newFile" title="Open" style="cursor: pointer;">
+        <label for="newFile" data-tippy-content="Open" style="cursor: pointer;">
           <i class="fa fa-file"></i>
         </label>
         <input
@@ -81,23 +85,23 @@
         />
       </li>
       <li class="not-mobile">
-        <button title="Save">
+        <button data-tippy-content="Save">
           <i class="fa fa-save"></i>
         </button>
       </li>
       <li>
-        <button title="Undo">
+        <button data-tippy-content="Undo">
           <i class="fa fa-undo"></i>
         </button>
       </li>
       <li>
-        <button title="Redo">
+        <button data-tippy-content="Redo">
           <i class="fa fa-repeat"></i>
         </button>
       </li>
       <li class="not-mobile">
         <div class="dropdown">
-          <button title="Font size">
+          <button>
             <i class="fa fa-font"></i>
           </button>
           <ul class="dropdown-content">
@@ -124,56 +128,53 @@
         </button> -->
       </li>
       <li class="not-mobile">
-        <button title="Zoom In">
+        <button data-tippy-content="Zoom In">
           <i class="fa fa-search-plus"></i>
         </button>
       </li>
       <li class="not-mobile">
-        <button title="Zoom Out">
+        <button data-tippy-content="Zoom Out">
           <i class="fa fa-search-minus"></i>
         </button>
       </li>
       <li class="not-mobile">
-        <button title="Bold">
+        <button data-tippy-content="Bold">
           <i class="fa fa-bold"></i>
         </button>
       </li>
       <li class="not-mobile">
-        <button title="Italic">
+        <button data-tippy-content="Italic">
           <i class="fa fa-italic"></i>
         </button>
       </li>
       <li class="not-mobile">
-        <button title="Underline">
+        <button data-tippy-content="Underline">
           <i class="fa fa-underline"></i>
         </button>
       </li>
       <li>
-        <button title="Color">
+        <button data-tippy-content="Color">
           <i class="fa fa-moon-o"></i>
         </button>
       </li>
       <li>
-        <button title="Help">
+        <button data-tippy-content="Help">
           <i class="fa fa-question-circle-o"></i>
         </button>
       </li>
     </ul>
     <div class="middle">
-      <div
-        id="main-textarea"
-        contenteditable="true"
-        placeholder="Type here..."
-        spellcheck="false"
-      ></div>
+      <div id="main-textarea" contenteditable="true" spellcheck="false"></div>
     </div>
     <footer>
       <p>characters <span id="charCount">0</span></p>
       <p>words <span id="wordCount">0</span></p>
-      <div id="corrections">
+      <div id="corrections" data-tippy-content="Incorrect words count">
         <div class="loader"></div>
       </div>
     </footer>
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
     <script src="lib\socket.io\socket.io.js"></script>
     <script src="lib\jquery\jquery.js"></script>
     <script src="lib\highlight\highlight.js"></script>
