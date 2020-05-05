@@ -111,7 +111,7 @@ input[type='button'] {
   height: 80vh;
   border-radius: 25px;
   padding: 10px;
-  font-size: 14px;
+  font-size: 16px;
   overflow-y: auto;
 }
 
@@ -166,6 +166,15 @@ input[type='button'] {
   z-index: 10001;
 }
 
+.picker {
+  background-color: var(--color-six);
+  display: none;
+  box-shadow: 0 4px 5px 3px rgba(0, 0, 0, 0.2);
+  position: absolute;
+  margin-top: -5px;
+  z-index: 10001;
+}
+
 .dropdown-content li {
   padding: 5px;
   margin: 0;
@@ -181,8 +190,13 @@ input[type='button'] {
   background-color: var(--color-seven);
 }
 
-.dropdown:hover .dropdown-content {
+.dropdown:hover .dropdown-content,
+.dropdown:hover .picker {
   display: block;
+}
+
+.a-color-picker {
+  background-color: var(--color-one) !important;
 }
 
 /* TEXTAREA */

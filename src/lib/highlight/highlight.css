@@ -28,6 +28,10 @@
   overflow: hidden !important;
 }
 
+.hwt-highlights font {
+  color: transparent !important;
+}
+
 .hwt-input {
   display: block !important;
   position: relative !important;

@@ -123,9 +123,19 @@
             <li>72</li>
           </ul>
         </div>
-        <!-- <button title="Font size">
-          <i class="fa fa-font"></i>
-        </button> -->
+      </li>
+      <li class="not-mobile">
+        <div class="dropdown">
+          <button>
+            <i class="fa fa-adjust"></i>
+          </button>
+          <div
+            class="picker"
+            acp-show-rgb="no"
+            acp-show-hsl="no"
+            acp-show-hex="no"
+          ></div>
+        </div>
       </li>
       <li class="not-mobile">
         <button data-tippy-content="Zoom In">
@@ -152,6 +162,11 @@
           <i class="fa fa-underline"></i>
         </button>
       </li>
+      <li class="not-mobile">
+        <button data-tippy-content="StrikeThrough">
+          <i class="fa fa-strikethrough"></i>
+        </button>
+      </li>
       <li>
         <button data-tippy-content="Color">
           <i class="fa fa-moon-o"></i>
@@ -175,6 +190,7 @@
     </footer>
     <script src="https://unpkg.com/@popperjs/core@2"></script>
     <script src="https://unpkg.com/tippy.js@6"></script>
+    <script src="https://cdn.jsdelivr.net/npm/a-color-picker@1.2.1/dist/acolorpicker.js"></script>
     <script src="lib\socket.io\socket.io.js"></script>
     <script src="lib\jquery\jquery.js"></script>
     <script src="lib\highlight\highlight.js"></script>

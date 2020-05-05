@@ -244,6 +244,10 @@ window.getTextNodeAtPosition = (root, index) => {
   window.onbeforeunload = saveText;
   window.onblur = saveText;
 
+  AColorPicker.from('.picker').on('change', (picker) => {
+    document.execCommand('foreColor', false, picker.rgbhex);
+  });
+
   $('#newFile').on('change', (event) => {
     const reader = new FileReader();
     reader.onload = () => {
@@ -291,23 +295,26 @@ window.getTextNodeAtPosition = (root, index) => {
     .children('li')
     .on('click', ({ target }) => {
       $(document.body).css({ fontSize: target.innerHTML + 'px' });
-      const fontSize = parseFloat(
+      const font = parseFloat(
         window
           .getComputedStyle(document.body, null)
           .getPropertyValue('font-size'),
       );
-      localStorage.setItem('font', fontSize + 'px');
+      localStorage.setItem('font', font + 'px');
       const children = main.children('font');
       if (children.length > 0) {
         optionUsed = true;
         children.css({
           fontSize:
-            pageFontSize - fontSize > 0
-              ? `+=${fontSize - pageFontSize}px`
-              : `-=${pageFontSize - fontSize}px`,
+            pageFontSize - font > 0
+              ? `+=${font - pageFontSize}px`
+              : `-=${pageFontSize - font}px`,
         });
       }
-      pageFontSize = fontSize;
+      if (fontSize) {
+        fontSize += font - pageFontSize;
+      }
+      pageFontSize = font;
     });
 
   $('button[data-tippy-content="Zoom In"]').on('click', () => {
@@ -335,6 +342,12 @@ window.getTextNodeAtPosition = (root, index) => {
   $('button[data-tippy-content="Underline"]').on('click', () => {
     optionUsed = true;
     document.execCommand('underline', false, null);
+    main.focus();
+  });
+
+  $('button[data-tippy-content="StrikeThrough"]').on('click', () => {
+    optionUsed = true;
+    document.execCommand('strikeThrough', false, null);
     main.focus();
   });
 
