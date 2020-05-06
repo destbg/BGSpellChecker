@@ -80,6 +80,7 @@ window.getTextNodeAtPosition = (root, index) => {
   const charCount = $('#charCount');
   const wordCount = $('#wordCount');
   const corrections = $('#corrections');
+  const wordList = $('.dropdown-words');
   const contextMenu = new ContextMenu(main);
   const txtHistory = new UndoRedoJs(5);
   const doneTypingInterval = 1000;
@@ -91,19 +92,22 @@ window.getTextNodeAtPosition = (root, index) => {
 
   socket.on('checked', (check) => {
     const checkLowered = check.map((f) => f.toLowerCase());
-    for (const addedWord of addedWords) {
-      const found = checkLowered.indexOf(addedWord);
-      if (found) {
-        check.splice(found, 1);
-        checkLowered.splice(found, 1);
-      }
+    const indexes = addedWords
+      .map((f) => checkLowered.indexOf(f))
+      .filter((f) => f !== -1);
+    for (const index of indexes) {
+      check.splice(index, 1);
     }
 
     main.highlightWithinTextarea(check);
     if (check.length > 0) {
-      corrections.css({ backgroundColor: 'darkred' });
+      corrections.css({
+        backgroundColor: 'darkred',
+      });
     } else {
-      corrections.css({ backgroundColor: 'darkmagenta' });
+      corrections.css({
+        backgroundColor: 'darkmagenta',
+      });
     }
     corrections.html(check.length);
   });
@@ -148,11 +152,38 @@ window.getTextNodeAtPosition = (root, index) => {
     return false;
   };
 
+  function addWordToDiv(word) {
+    const li = $('<li></li>');
+    li.append(document.createTextNode(word));
+    const i = $('<i></i>');
+    i.addClass('fa fa-times');
+    i.on('click', ({ target }) => {
+      addedWords.splice(
+        addedWords.indexOf((f) => f === target.parentElement.innerText),
+        1,
+      );
+      li.remove();
+      if (addedWords.length === 0) {
+        wordList.html('');
+        wordList.append('<li>No words added</li>');
+      }
+      localStorage.setItem('added', JSON.stringify(addedWords));
+      checkText();
+    });
+    li.append(i);
+    wordList.append(li);
+  }
+
   window.addWord = (word) => {
-    addedWords.push(word.toLowerCase());
+    word = word.toLowerCase();
+    addedWords.push(word);
+    if (addedWords.length === 1) {
+      wordList.html('');
+    }
+    addWordToDiv(word);
+
     localStorage.setItem('added', JSON.stringify(addedWords));
-    optionUsed = true;
-    mainElem.dispatchEvent(new Event('input'));
+    checkText();
   };
 
   function checkText() {
@@ -224,8 +255,14 @@ window.getTextNodeAtPosition = (root, index) => {
     }
 
     const words = localStorage.getItem('added');
-    if (words) {
+    if (words && words !== '[]') {
       addedWords = JSON.parse(words);
+      for (const word of addedWords) {
+        addWordToDiv(word);
+      }
+    } else {
+      wordList.html('');
+      wordList.append('<li>No words added</li>');
     }
 
     pageFontSize = parseFloat(
@@ -301,7 +338,7 @@ window.getTextNodeAtPosition = (root, index) => {
           .getPropertyValue('font-size'),
       );
       localStorage.setItem('font', font + 'px');
-      const children = main.children('font');
+      const children = main.find('font');
       if (children.length > 0) {
         optionUsed = true;
         children.css({
@@ -399,7 +436,7 @@ window.getTextNodeAtPosition = (root, index) => {
   }
 
   function fixFontSize() {
-    for (const font of main.children('font')) {
+    for (const font of main.find('font')) {
       if (!font.hasAttribute('style')) {
         font.removeAttribute('size');
         font.style.fontSize = fontSize + 'px';

@@ -73,7 +73,7 @@
       </div>
     </div>
     <ul class="options-list">
-      <li class="not-mobile">
+      <li class="not-large">
         <label for="newFile" data-tippy-content="Open" style="cursor: pointer;">
           <i class="fa fa-file"></i>
         </label>
@@ -84,7 +84,7 @@
           style="display: none;"
         />
       </li>
-      <li class="not-mobile">
+      <li class="not-large">
         <button data-tippy-content="Save">
           <i class="fa fa-save"></i>
         </button>
@@ -99,9 +99,12 @@
           <i class="fa fa-repeat"></i>
         </button>
       </li>
-      <li class="not-mobile">
+      <li class="not-small">
         <div class="dropdown">
-          <button>
+          <button
+            data-tippy-content="Change global font size"
+            data-tippy-placement="right"
+          >
             <i class="fa fa-font"></i>
           </button>
           <ul class="dropdown-content">
@@ -124,9 +127,12 @@
           </ul>
         </div>
       </li>
-      <li class="not-mobile">
+      <li class="not-small">
         <div class="dropdown">
-          <button>
+          <button
+            data-tippy-content="Change text color"
+            data-tippy-placement="left"
+          >
             <i class="fa fa-adjust"></i>
           </button>
           <div
@@ -137,32 +143,32 @@
           ></div>
         </div>
       </li>
-      <li class="not-mobile">
-        <button data-tippy-content="Zoom In">
+      <li class="not-medium">
+        <button data-tippy-content="Zoom in">
           <i class="fa fa-search-plus"></i>
         </button>
       </li>
-      <li class="not-mobile">
-        <button data-tippy-content="Zoom Out">
+      <li class="not-medium">
+        <button data-tippy-content="Zoom out">
           <i class="fa fa-search-minus"></i>
         </button>
       </li>
-      <li class="not-mobile">
+      <li class="not-small">
         <button data-tippy-content="Bold">
           <i class="fa fa-bold"></i>
         </button>
       </li>
-      <li class="not-mobile">
+      <li class="not-small">
         <button data-tippy-content="Italic">
           <i class="fa fa-italic"></i>
         </button>
       </li>
-      <li class="not-mobile">
+      <li class="not-small">
         <button data-tippy-content="Underline">
           <i class="fa fa-underline"></i>
         </button>
       </li>
-      <li class="not-mobile">
+      <li class="not-small">
         <button data-tippy-content="StrikeThrough">
           <i class="fa fa-strikethrough"></i>
         </button>
@@ -171,6 +177,17 @@
         <button data-tippy-content="Color">
           <i class="fa fa-moon-o"></i>
         </button>
+      </li>
+      <li class="not-small">
+        <div class="dropdown">
+          <button
+            data-tippy-content="List of added words"
+            data-tippy-placement="left"
+          >
+            <i class="fa fa-list"></i>
+          </button>
+          <ul class="dropdown-words"></ul>
+        </div>
       </li>
       <li>
         <button data-tippy-content="Help">

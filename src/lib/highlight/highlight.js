@@ -85,7 +85,7 @@
 
       this.$highlights.html(input);
 
-      this.$highlights.children('span').on('click', (ev) => {
+      this.$highlights.find('span').on('click', (ev) => {
         return window.openTextChecker(ev);
       });
     }
