@@ -133,101 +133,6 @@ input[type='button'] {
   list-style: circle;
 }
 
-/* OPTIONS */
-.options-list {
-  background-color: var(--color-six);
-  height: 50px;
-}
-
-.options-list li {
-  float: left;
-  text-align: center;
-  padding: 10px 20px;
-  font-size: medium;
-}
-
-.options-list i {
-  font-size: 30px !important;
-}
-
-.dropdown {
-  position: relative;
-  display: inline-block;
-}
-
-.dropdown-content {
-  background-color: var(--color-six);
-  display: none;
-  box-shadow: 0 4px 5px 3px rgba(0, 0, 0, 0.2);
-  position: absolute;
-  width: 50px;
-  height: 200px;
-  overflow-y: scroll;
-  z-index: 10001;
-}
-
-.picker {
-  background-color: var(--color-six);
-  display: none;
-  box-shadow: 0 4px 5px 3px rgba(0, 0, 0, 0.2);
-  position: absolute;
-  z-index: 10001;
-}
-
-.dropdown-words {
-  background-color: var(--color-six);
-  width: 150px;
-  max-height: 300px;
-  overflow-y: auto;
-  display: none;
-  box-shadow: 0 4px 5px 3px rgba(0, 0, 0, 0.2);
-  position: absolute;
-  margin-top: -5px;
-  z-index: 10001;
-}
-
-.dropdown-content li {
-  padding: 5px;
-  margin: 0;
-  width: 100%;
-  cursor: pointer;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-
-.dropdown-words li {
-  padding: 5px;
-  margin: 0;
-  width: 100%;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-
-.dropdown-words i {
-  float: right;
-  font-size: 20px !important;
-  cursor: pointer;
-}
-
-.dropdown-content li:hover,
-.dropdown-words li:hover {
-  background-color: var(--color-seven);
-}
-
-.dropdown:hover .dropdown-content,
-.dropdown:hover .picker,
-.dropdown:hover .dropdown-words {
-  display: block;
-}
-
-.a-color-picker {
-  background-color: var(--color-one) !important;
-}
-
 /* TEXTAREA */
 .middle {
   height: calc(100% - 98px);
@@ -321,25 +226,9 @@ footer p {
 
 /* MEDIA */
 @media (max-width: 768px) {
-  .not-small {
-    display: none;
-  }
-
   .help-menu {
     width: 100vw;
     height: 100vh;
     border-radius: 0;
-  }
-}
-
-@media (max-width: 1200px) {
-  .not-large {
-    display: none;
-  }
-}
-
-@media (max-width: 992px) {
-  .not-medium {
-    display: none;
   }
 }

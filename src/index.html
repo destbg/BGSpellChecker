@@ -10,6 +10,7 @@
     />
     <link rel="stylesheet" href="lib\highlight\highlight.css" />
     <link rel="stylesheet" href="lib\context-menu\context-menu.css" />
+    <link rel="stylesheet" href="lib\options-menu\options-menu.css" />
     <link rel="stylesheet" href="main.css" />
   </head>
 
@@ -72,129 +73,141 @@
         </p>
       </div>
     </div>
-    <ul class="options-list">
-      <li class="not-large">
-        <label for="newFile" data-tippy-content="Open" style="cursor: pointer;">
-          <i class="fa fa-file"></i>
-        </label>
-        <input
-          id="newFile"
-          type="file"
-          accept="text/plain"
-          style="display: none;"
-        />
-      </li>
-      <li class="not-large">
-        <button data-tippy-content="Save">
-          <i class="fa fa-save"></i>
-        </button>
-      </li>
-      <li>
-        <button data-tippy-content="Undo">
-          <i class="fa fa-undo"></i>
-        </button>
-      </li>
-      <li>
-        <button data-tippy-content="Redo">
-          <i class="fa fa-repeat"></i>
-        </button>
-      </li>
-      <li class="not-small">
-        <div class="dropdown">
-          <button
-            data-tippy-content="Change global font size"
-            data-tippy-placement="right"
+    <div id="options">
+      <button id="optionLeft">
+        <i class="fa fa-chevron-left"></i>
+      </button>
+      <ul id="optionsList">
+        <li class="option">
+          <label
+            for="newFile"
+            data-tippy-content="Open"
+            style="cursor: pointer;"
           >
-            <i class="fa fa-font"></i>
+            <i class="fa fa-file"></i>
+          </label>
+          <input
+            id="newFile"
+            type="file"
+            accept="text/plain"
+            style="display: none;"
+          />
+        </li>
+        <li class="option">
+          <button data-tippy-content="Save">
+            <i class="fa fa-save"></i>
           </button>
-          <ul class="dropdown-content">
-            <li>8</li>
-            <li>9</li>
-            <li>10</li>
-            <li>11</li>
-            <li>12</li>
-            <li>14</li>
-            <li>16</li>
-            <li>18</li>
-            <li>20</li>
-            <li>22</li>
-            <li>24</li>
-            <li>26</li>
-            <li>28</li>
-            <li>36</li>
-            <li>48</li>
-            <li>72</li>
-          </ul>
-        </div>
-      </li>
-      <li class="not-small">
-        <div class="dropdown">
-          <button
-            data-tippy-content="Change text color"
-            data-tippy-placement="left"
-          >
-            <i class="fa fa-adjust"></i>
+        </li>
+        <li class="option">
+          <button data-tippy-content="Undo">
+            <i class="fa fa-undo"></i>
           </button>
-          <div
-            class="picker"
-            acp-show-rgb="no"
-            acp-show-hsl="no"
-            acp-show-hex="no"
-          ></div>
-        </div>
-      </li>
-      <li class="not-medium">
-        <button data-tippy-content="Zoom in">
-          <i class="fa fa-search-plus"></i>
-        </button>
-      </li>
-      <li class="not-medium">
-        <button data-tippy-content="Zoom out">
-          <i class="fa fa-search-minus"></i>
-        </button>
-      </li>
-      <li class="not-small">
-        <button data-tippy-content="Bold">
-          <i class="fa fa-bold"></i>
-        </button>
-      </li>
-      <li class="not-small">
-        <button data-tippy-content="Italic">
-          <i class="fa fa-italic"></i>
-        </button>
-      </li>
-      <li class="not-small">
-        <button data-tippy-content="Underline">
-          <i class="fa fa-underline"></i>
-        </button>
-      </li>
-      <li class="not-small">
-        <button data-tippy-content="StrikeThrough">
-          <i class="fa fa-strikethrough"></i>
-        </button>
-      </li>
-      <li>
-        <button data-tippy-content="Color">
-          <i class="fa fa-moon-o"></i>
-        </button>
-      </li>
-      <li class="not-small">
-        <div class="dropdown">
-          <button
-            data-tippy-content="List of added words"
-            data-tippy-placement="left"
-          >
-            <i class="fa fa-list"></i>
+        </li>
+        <li class="option">
+          <button data-tippy-content="Redo">
+            <i class="fa fa-repeat"></i>
           </button>
-          <ul class="dropdown-words"></ul>
-        </div>
-      </li>
-      <li>
-        <button data-tippy-content="Help">
-          <i class="fa fa-question-circle-o"></i>
-        </button>
-      </li>
-    </ul>
+        </li>
+        <li class="option">
+          <div class="dropdown">
+            <button
+              data-tippy-content="Change global font size"
+              data-tippy-placement="right"
+            >
+              <i class="fa fa-font"></i>
+            </button>
+            <ul class="dropdown-content">
+              <li>8</li>
+              <li>9</li>
+              <li>10</li>
+              <li>11</li>
+              <li>12</li>
+              <li>14</li>
+              <li>16</li>
+              <li>18</li>
+              <li>20</li>
+              <li>22</li>
+              <li>24</li>
+              <li>26</li>
+              <li>28</li>
+              <li>36</li>
+              <li>48</li>
+              <li>72</li>
+            </ul>
+          </div>
+        </li>
+        <li class="option">
+          <div class="dropdown">
+            <button
+              data-tippy-content="Change text color"
+              data-tippy-placement="left"
+            >
+              <i class="fa fa-adjust"></i>
+            </button>
+            <div
+              class="picker"
+              acp-show-rgb="no"
+              acp-show-hsl="no"
+              acp-show-hex="no"
+            ></div>
+          </div>
+        </li>
+        <li class="option">
+          <button data-tippy-content="Zoom in">
+            <i class="fa fa-search-plus"></i>
+          </button>
+        </li>
+        <li class="option">
+          <button data-tippy-content="Zoom out">
+            <i class="fa fa-search-minus"></i>
+          </button>
+        </li>
+        <li class="option">
+          <button data-tippy-content="Bold">
+            <i class="fa fa-bold"></i>
+          </button>
+        </li>
+        <li class="option">
+          <button data-tippy-content="Italic">
+            <i class="fa fa-italic"></i>
+          </button>
+        </li>
+        <li class="option">
+          <button data-tippy-content="Underline">
+            <i class="fa fa-underline"></i>
+          </button>
+        </li>
+        <li class="option">
+          <button data-tippy-content="StrikeThrough">
+            <i class="fa fa-strikethrough"></i>
+          </button>
+        </li>
+        <li class="option">
+          <button data-tippy-content="Color">
+            <i class="fa fa-moon-o"></i>
+          </button>
+        </li>
+        <li class="option">
+          <div class="dropdown">
+            <button
+              data-tippy-content="List of added words"
+              data-tippy-placement="left"
+            >
+              <i class="fa fa-list"></i>
+            </button>
+            <ul class="dropdown-words"></ul>
+          </div>
+        </li>
+        <li class="option">
+          <button data-tippy-content="Help">
+            <i class="fa fa-question-circle-o"></i>
+          </button>
+        </li>
+      </ul>
+      <button id="optionRight">
+        <i class="fa fa-chevron-right"></i>
+      </button>
+    </div>
     <div class="middle">
       <div id="main-textarea" contenteditable="true" spellcheck="false"></div>
     </div>
@@ -212,6 +225,7 @@
     <script src="lib\jquery\jquery.js"></script>
     <script src="lib\highlight\highlight.js"></script>
     <script src="lib\context-menu\context-menu.js"></script>
+    <script src="lib\options-menu\options-menu.js"></script>
     <script src="lib\undo-redo\UndoRedo.js"></script>
     <script src="main.js"></script>
   </body>
