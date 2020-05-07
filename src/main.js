@@ -2,7 +2,7 @@ window.fixHtml = (elements) => {
   let input = '';
   for (const elem of elements) {
     const type = elem.localName;
-    if (type) {
+    if (type && type !== 'br') {
       const html = elem.outerHTML;
       input +=
         html.slice(0, html.indexOf('>') + 1) +
@@ -31,7 +31,10 @@ window.getStringRanges = (input, string) => {
           /[!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~\s\da-zA-Z]/,
         ))
     ) {
-      ranges.push([index, index + str.length]);
+      const newLines =
+        input.slice(0, index).length -
+        input.slice(0, index).replace(/\n/g, '').length;
+      ranges.push([index - newLines, index + str.length - newLines]);
     }
     index += str.length;
   }
@@ -57,28 +60,6 @@ window.getTextNodeAtPosition = (root, index) => {
   };
 };
 
-window.replaceWord = (word, replace) => {
-  const ranges = window.getStringRanges(window.main.text().toLowerCase(), word);
-  const mainElem = window.main.get(0);
-  replace =
-    word[0] === word[0].toUpperCase()
-      ? replace[0].toUpperCase() + replace.slice(1)
-      : replace;
-  ranges.forEach((range) => {
-    const selection = document.getSelection();
-    const startPos = window.getTextNodeAtPosition(mainElem, range[0]);
-    const endPos = window.getTextNodeAtPosition(mainElem, range[1]);
-    selection.removeAllRanges();
-    const docRange = new Range();
-    docRange.setStart(startPos.node, startPos.position);
-    docRange.setEnd(endPos.node, endPos.position);
-    selection.addRange(docRange);
-    document.execCommand('insertText', false, replace);
-  });
-  optionUsed = true;
-  mainElem.dispatchEvent(new Event('input'));
-};
-
 (() => {
   const color = localStorage.getItem('color');
   if (color && color === 'white') {
@@ -97,7 +78,7 @@ window.replaceWord = (word, replace) => {
 })();
 
 (() => {
-  window.main = $('#main-textarea');
+  const main = $('#main-textarea');
   const socket = io();
   const charCount = $('#charCount');
   const wordCount = $('#wordCount');
@@ -108,8 +89,8 @@ window.replaceWord = (word, replace) => {
   const doneTypingInterval = 1000;
   let addedWords = [];
   let optionUsed = false;
-  let pageFontSize;
   let typingTimer;
+  let pageFontSize;
   let fontSize;
 
   socket.on('checked', (check) => {
@@ -121,7 +102,7 @@ window.replaceWord = (word, replace) => {
       check.splice(index, 1);
     }
 
-    window.main.highlightWithinTextarea(check);
+    main.highlightWithinTextarea(check);
     if (check.length > 0) {
       corrections.css({
         backgroundColor: 'darkred',
@@ -152,6 +133,34 @@ window.replaceWord = (word, replace) => {
     return false;
   };
 
+  window.replaceWord = (word, replace) => {
+    let ranges = window.getStringRanges(
+      main.get(0).innerText.toLowerCase(),
+      word,
+    );
+
+    const mainElem = main.get(0);
+    replace =
+      word[0] === word[0].toUpperCase()
+        ? replace[0].toUpperCase() + replace.slice(1)
+        : replace;
+
+    ranges.forEach((range) => {
+      const selection = document.getSelection();
+      const startPos = window.getTextNodeAtPosition(mainElem, range[0]);
+      const endPos = window.getTextNodeAtPosition(mainElem, range[1]);
+      selection.removeAllRanges();
+      const docRange = new Range();
+      docRange.setStart(startPos.node, startPos.position);
+      docRange.setEnd(endPos.node, endPos.position);
+      selection.addRange(docRange);
+      document.execCommand('insertText', false, replace);
+    });
+
+    optionUsed = true;
+    mainElem.dispatchEvent(new Event('input'));
+  };
+
   function addWordToDiv(word) {
     const li = $('<li></li>');
     li.append(document.createTextNode(word));
@@ -164,11 +173,10 @@ window.replaceWord = (word, replace) => {
       );
       li.remove();
       if (addedWords.length === 0) {
-        wordList.html('');
-        wordList.append('<li>No words added</li>');
+        wordList.html('<li>No words added</li>');
       }
       localStorage.setItem('added', JSON.stringify(addedWords));
-      window.checkText();
+      checkText();
     });
     li.append(i);
     wordList.append(li);
@@ -183,11 +191,11 @@ window.replaceWord = (word, replace) => {
     addWordToDiv(word);
 
     localStorage.setItem('added', JSON.stringify(addedWords));
-    window.checkText();
+    checkText();
   };
 
-  window.checkText = () => {
-    const value = window.fixHtml(window.main.contents());
+  function checkText() {
+    const value = window.fixHtml(main.contents());
     const current = txtHistory.current();
     if (current !== value) {
       // Check for pastes, auto corrects..
@@ -205,16 +213,16 @@ window.replaceWord = (word, replace) => {
       }
     }
 
-    socket.emit('check', window.main.text());
-  };
+    socket.emit('check', main.get(0).innerText);
+  }
 
-  window.main.on('click', () => {
+  main.on('click', () => {
     if (contextMenu.menuVisible) {
       contextMenu.toggleMenu(false);
     }
   });
 
-  window.main.on('input', () => {
+  main.on('input', () => {
     clearTimeout(typingTimer);
     if (fontSize) {
       fixFontSize();
@@ -223,35 +231,35 @@ window.replaceWord = (word, replace) => {
       corrections.css({ backgroundColor: 'darkmagenta' });
       corrections.html('<div class="loader"></div>');
     }
-    const value = window.main.text();
+    const value = main.get(0).innerText;
     charCount.html(value.length);
     wordCount.html(value.split(' ').filter((f) => f !== '').length);
 
-    if (value.length === 0) {
-      window.main.html('');
+    if (main.text().length === 0) {
+      main.html('');
     }
 
     if (!optionUsed) {
       const timerMultiplier = Math.pow(Math.log10(value.length), 0.75);
       typingTimer = setTimeout(
-        () => window.checkText(),
+        () => checkText(),
         (timerMultiplier > 1 ? timerMultiplier : 1) * doneTypingInterval,
       );
     } else {
-      window.checkText();
+      checkText();
       optionUsed = false;
     }
   });
 
   setTimeout(() => {
-    const value = window.fixHtml(window.main.contents());
+    document.execCommand('insertBrOnReturn', false, false);
+
+    const value = window.fixHtml(main.contents());
     const current = txtHistory.current();
     if (value !== current) {
-      txtHistory.record(value, true);
-
       corrections.css({ backgroundColor: 'darkmagenta' });
       corrections.html('<div class="loader"></div>');
-      window.main.html(current);
+      main.html(current);
     }
 
     const words = localStorage.getItem('added');
@@ -261,25 +269,186 @@ window.replaceWord = (word, replace) => {
         addWordToDiv(word);
       }
     } else {
-      wordList.html('');
-      wordList.append('<li>No words added</li>');
+      wordList.html('<li>No words added</li>');
     }
 
-    pageFontSize = parseFloat(
-      window
-        .getComputedStyle(document.body, null)
-        .getPropertyValue('font-size'),
-    );
-
-    window.checkText();
+    checkText();
   }, 100);
 
   function saveText() {
     localStorage.setItem('text', JSON.stringify(txtHistory.stack));
   }
 
-  window.onbeforeunload = saveText;
-  window.onblur = saveText;
+  window.onbeforeunload = () => saveText();
+  window.onblur = () => saveText();
+
+  function changeFontWithinTextarea(size) {
+    const selection = document.getSelection();
+    const parent = selection.focusNode.parentElement;
+    const selectionType = selection.type;
+    document.execCommand('fontSize', false, 1);
+    if (parent.localName === 'font') {
+      fontSize = parseFloat(parent.style.fontSize.replace('px', '')) + size;
+    } else {
+      fontSize =
+        parseFloat(
+          window
+            .getComputedStyle(document.body, null)
+            .getPropertyValue('font-size'),
+        ) + size;
+    }
+    if (selectionType === 'Range') {
+      fixFontSize();
+    }
+    main.focus();
+  }
+
+  function fixFontSize() {
+    for (const font of main.find('font')) {
+      if (!font.hasAttribute('style')) {
+        font.removeAttribute('size');
+        font.style.fontSize = fontSize + 'px';
+      }
+    }
+    fontSize = undefined;
+  }
+
+  AColorPicker.from('.picker').on('change', (picker) => {
+    document.execCommand('foreColor', false, picker.rgbhex);
+  });
+
+  $('#newFile').on('change', (event) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (!reader.result) return;
+
+      const html =
+        '<div>' +
+        reader.result
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(new RegExp('(\r\n|\n)', 'g'), '</div><div>') +
+        '</div>';
+
+      main.html(html);
+      txtHistory.record(html, true);
+
+      corrections.css({ backgroundColor: 'darkmagenta' });
+      corrections.html('<div class="loader"></div>');
+
+      checkText();
+    };
+    reader.readAsText(event.target.files[0]);
+  });
+
+  $('button[data-tippy-content="Save"]').on('click', () => {
+    const text = main.get(0).innerText.replace(/\n/g, '\r\n'); // To retain the Line breaks.
+    const blob = new Blob([text], { type: 'text/plain' });
+    const anchor = document.createElement('a');
+    anchor.download = 'text-file.txt';
+    anchor.href = window.URL.createObjectURL(blob);
+    anchor.target = '_blank';
+    anchor.style.display = 'none';
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+  });
+
+  $('button[data-tippy-content="Undo"]').on('click', () => {
+    if (txtHistory.undo(true) !== undefined) {
+      main.html(txtHistory.undo());
+      socket.emit('check', main.get(0).innerText);
+    }
+  });
+
+  $('button[data-tippy-content="Redo"]').on('click', () => {
+    if (txtHistory.redo(true) !== undefined) {
+      main.html(txtHistory.redo());
+      socket.emit('check', main.get(0).innerText);
+    }
+  });
+
+  $('.dropdown-content')
+    .children('li')
+    .on('click', ({ target }) => {
+      $(document.body).css({ fontSize: target.innerHTML + 'px' });
+      const font = parseFloat(
+        window
+          .getComputedStyle(document.body, null)
+          .getPropertyValue('font-size'),
+      );
+      localStorage.setItem('font', font + 'px');
+      const children = main.find('font');
+      if (children.length > 0) {
+        optionUsed = true;
+        children.css({
+          fontSize:
+            pageFontSize - font > 0
+              ? `+=${font - pageFontSize}px`
+              : `-=${pageFontSize - font}px`,
+        });
+      }
+      if (fontSize) {
+        fontSize += font - pageFontSize;
+      }
+      pageFontSize = font;
+    });
+
+  $('button[data-tippy-content="Zoom in"]').on('click', () => {
+    optionUsed = true;
+    changeFontWithinTextarea(4);
+  });
+
+  $('button[data-tippy-content="Zoom out"]').on('click', () => {
+    optionUsed = true;
+    changeFontWithinTextarea(-4);
+  });
+
+  $('button[data-tippy-content="Bold"]').on('click', () => {
+    optionUsed = true;
+    document.execCommand('bold', false, null);
+    main.focus();
+  });
+
+  $('button[data-tippy-content="Italic"]').on('click', () => {
+    optionUsed = true;
+    document.execCommand('italic', false, null);
+    main.focus();
+  });
+
+  $('button[data-tippy-content="Underline"]').on('click', () => {
+    optionUsed = true;
+    document.execCommand('underline', false, null);
+    main.focus();
+  });
+
+  $('button[data-tippy-content="StrikeThrough"]').on('click', () => {
+    optionUsed = true;
+    document.execCommand('strikeThrough', false, null);
+    main.focus();
+  });
+
+  $('button[data-tippy-content="Color"]').on('click', () => {
+    let elements = document.getElementsByClassName('fa-moon-o');
+    if (elements.length === 0) {
+      document.documentElement.setAttribute('color', 'dark');
+      elements = document.getElementsByClassName('fa-sun-o');
+      const element = elements[0];
+      element.classList.remove('fa-sun-o');
+      element.classList.add('fa-moon-o');
+      localStorage.setItem('color', 'dark');
+    } else {
+      document.documentElement.setAttribute('color', 'white');
+      const element = elements[0];
+      element.classList.remove('fa-moon-o');
+      element.classList.add('fa-sun-o');
+      localStorage.setItem('color', 'white');
+    }
+  });
+
+  $('button[data-tippy-content="Help"]').on('click', () => {
+    $('.help-menu-bg').show();
+  });
 
   $('.help-menu-bg').on('click', () => {
     $('.help-menu-bg').hide();

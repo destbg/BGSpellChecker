@@ -71,6 +71,7 @@ button {
     Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   padding: 0;
   margin: 0;
+  line-height: 1.333em;
   scrollbar-color: var(--color-seven) var(--color-six);
 }
 
@@ -90,6 +91,13 @@ input[type='button'] {
   border: none;
   background-color: transparent;
   cursor: pointer;
+}
+
+br {
+  content: ' ';
+}
+br:after {
+  content: ' ';
 }
 
 /* HELP */
@@ -143,7 +151,7 @@ input[type='button'] {
   height: 100%;
   resize: none;
   border: hidden;
-  white-space: pre-wrap;
+  white-space: nowrap;
   word-wrap: break-word;
   overflow-x: hidden;
   padding: 0 20px;

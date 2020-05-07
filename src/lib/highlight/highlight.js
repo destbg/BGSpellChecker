@@ -30,19 +30,23 @@
     }
 
     handleInput() {
-      const input = this.$el.text().toLowerCase();
+      const input = this.$el.get(0).innerText.toLowerCase();
       if (input.length === 0) {
         this.$highlights.html('');
         return;
       }
       const ranges = this.getRanges(input, this.highlight);
+      ranges.sort((a, b) => b[0] - a[0]);
       this.renderMarks(ranges);
       this.handleScroll();
     }
 
     getRanges(input, highlight) {
-      const ranges = highlight.map(window.getStringRanges.bind(this, input));
-      return Array.prototype.concat.apply([], ranges);
+      let ranges = highlight.map(window.getStringRanges.bind(this, input));
+      ranges = Array.prototype.concat.apply([], ranges);
+      return ranges.filter(
+        (value, index) => ranges.findIndex((f) => f[0] === value[0]) === index,
+      );
     }
 
     renderMarks(ranges) {
@@ -52,35 +56,31 @@
       ranges.forEach((range) => {
         let length = 0;
         let index = -1;
+        // go around html tags
         while (
           ((index = input.indexOf('<', index + 1)),
           index !== -1 && range[0] + length >= index)
         ) {
-          length += input.slice(index, input.indexOf('>', index) + 1).length;
+          length += input.indexOf('>', index) - index + 1;
         }
 
-        input =
-          input.slice(0, range[0] + length) +
-          markStart +
-          input.slice(range[0] + length);
-
-        length += markStart.length;
-
-        if (index < range[0] + length) {
-          index = range[0] + length;
-        }
+        index = range[0] + length;
+        let lengthEnd = length;
 
         while (
           ((index = input.indexOf('<', index + 1)),
-          index !== -1 && range[1] + length >= index)
+          index !== -1 && range[1] + lengthEnd > index)
         ) {
-          length += input.slice(index, input.indexOf('>', index) + 1).length;
+          lengthEnd += input.indexOf('>', index) - index + 1;
         }
 
+        // insert highlighter around the word
         input =
-          input.slice(0, range[1] + length) +
+          input.slice(0, range[0] + length) +
+          markStart +
+          input.slice(range[0] + length, range[1] + lengthEnd) +
           markEnd +
-          input.slice(range[1] + length);
+          input.slice(range[1] + lengthEnd);
       });
 
       this.$highlights.html(input);

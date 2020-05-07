@@ -1,7 +1,6 @@
 class UndoRedoJs {
   constructor(cooldownNumber) {
     this.cooldownNumber = cooldownNumber;
-    this.currentNumber = 0;
     this.currentCooldownNumber = 0;
 
     const stored = localStorage.getItem('text');
@@ -52,6 +51,12 @@ class UndoRedoJs {
         this.stack.push(data);
         this.currentNumber++;
         this.currentCooldownNumber = this.cooldownNumber;
+      }
+    }
+    if (this.stack.length > 100) {
+      this.stack.splice(0, this.stack.length - 100);
+      if (this.currentNumber >= this.stack.length) {
+        this.currentNumber = this.stack.length - 1;
       }
     }
   }
