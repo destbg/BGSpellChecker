@@ -231,13 +231,14 @@ window.getTextNodeAtPosition = (root, index) => {
       corrections.css({ backgroundColor: 'darkmagenta' });
       corrections.html('<div class="loader"></div>');
     }
-    const value = main.get(0).innerText;
-    charCount.html(value.length);
-    wordCount.html(value.split(' ').filter((f) => f !== '').length);
 
     if (main.text().length === 0) {
       main.html('');
     }
+
+    const value = main.get(0).innerText;
+    charCount.html(value.length);
+    wordCount.html(value.split(' ').filter((f) => f !== '').length);
 
     if (!optionUsed) {
       const timerMultiplier = Math.pow(Math.log10(value.length), 0.75);
@@ -305,7 +306,7 @@ window.getTextNodeAtPosition = (root, index) => {
 
   function fixFontSize() {
     for (const font of main.find('font')) {
-      if (!font.hasAttribute('style')) {
+      if (font.hasAttribute('size')) {
         font.removeAttribute('size');
         font.style.fontSize = fontSize + 'px';
       }
@@ -322,21 +323,21 @@ window.getTextNodeAtPosition = (root, index) => {
     reader.onload = () => {
       if (!reader.result) return;
 
+      console.log(JSON.stringify(reader.result));
+
       const html =
         '<div>' +
         reader.result
           .replace(/</g, '&lt;')
           .replace(/>/g, '&gt;')
-          .replace(new RegExp('(\r\n|\n)', 'g'), '</div><div>') +
+          .replace(/\r\n/gm, '</div><div>')
+          .replace(/\n/gm, '</div><div>') +
         '</div>';
 
       main.html(html);
-      txtHistory.record(html, true);
 
-      corrections.css({ backgroundColor: 'darkmagenta' });
-      corrections.html('<div class="loader"></div>');
-
-      checkText();
+      optionUsed = true;
+      main.get(0).dispatchEvent(new Event('input'));
     };
     reader.readAsText(event.target.files[0]);
   });

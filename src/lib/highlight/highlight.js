@@ -50,40 +50,33 @@
     }
 
     renderMarks(ranges) {
-      let input = window.fixHtml(this.$el.contents());
-      const markStart = '<span><h></h>';
-      const markEnd = '</span>';
+      this.$highlights.html(window.fixHtml(this.$el.contents()));
+      const highlightsElem = this.$highlights.get(0);
       ranges.forEach((range) => {
-        let length = 0;
-        let index = -1;
-        // go around html tags
-        while (
-          ((index = input.indexOf('<', index + 1)),
-          index !== -1 && range[0] + length >= index)
-        ) {
-          length += input.indexOf('>', index) - index + 1;
-        }
-
-        index = range[0] + length;
-        let lengthEnd = length;
-
-        while (
-          ((index = input.indexOf('<', index + 1)),
-          index !== -1 && range[1] + lengthEnd > index)
-        ) {
-          lengthEnd += input.indexOf('>', index) - index + 1;
-        }
-
-        // insert highlighter around the word
-        input =
-          input.slice(0, range[0] + length) +
-          markStart +
-          input.slice(range[0] + length, range[1] + lengthEnd) +
-          markEnd +
-          input.slice(range[1] + lengthEnd);
+        const selection = document.getSelection();
+        const startPos = window.getTextNodeAtPosition(highlightsElem, range[0]);
+        selection.removeAllRanges();
+        let docRange = new Range();
+        docRange.setStart(startPos.node, startPos.position);
+        selection.addRange(docRange);
+        const span = document.createElement('span');
+        span.append(document.createElement('h'));
+        docRange.insertNode(span);
+        const endPos = window.getTextNodeAtPosition(highlightsElem, range[1]);
+        selection.removeAllRanges();
+        docRange = new Range();
+        docRange.setStart(endPos.node, endPos.position);
+        selection.addRange(docRange);
+        docRange.insertNode(document.createElement('span'));
       });
 
-      this.$highlights.html(input);
+      this.$highlights.html(
+        window
+          .fixHtml(this.$highlights.contents())
+          .replace(new RegExp('<span><h></h></span>', 'g'), '<span><h></h>')
+          .replace(new RegExp('<span></span>', 'g'), '</span>'),
+      );
+      this.$el.focus();
 
       this.$highlights.find('span').on('click', (ev) => {
         return window.openTextChecker(ev);

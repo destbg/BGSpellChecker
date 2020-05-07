@@ -61,6 +61,7 @@
   width: 50px;
   height: 200px;
   overflow-y: scroll;
+  margin-top: -5px;
   z-index: 10001;
 }
 
@@ -69,6 +70,7 @@
   display: none;
   box-shadow: 0 4px 5px 3px rgba(0, 0, 0, 0.2);
   position: fixed;
+  margin-top: -5px;
   z-index: 10001;
 }
 

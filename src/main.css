@@ -151,7 +151,7 @@ br:after {
   height: 100%;
   resize: none;
   border: hidden;
-  white-space: nowrap;
+  white-space: pre-wrap;
   word-wrap: break-word;
   overflow-x: hidden;
   padding: 0 20px;
