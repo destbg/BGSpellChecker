@@ -3,6 +3,8 @@
 
   class HighlightWithinTextarea {
     constructor($el, config) {
+      this.backScrolling = false;
+      this.frontScrolling = false;
       this.$el = $el;
       this.highlight = config;
       this.$el
@@ -13,9 +15,9 @@
         class: ID + '-highlights ' + ID + '-content',
       });
 
-      this.$backdrop = $('<div>', { class: ID + '-backdrop' }).append(
-        this.$highlights,
-      );
+      this.$backdrop = $('<div>', { class: ID + '-backdrop' })
+        .append(this.$highlights)
+        .on('scroll', this.backdropScroll.bind(this));
 
       this.$container = $('<div>', { class: ID + '-container' })
         .insertAfter(this.$el)
@@ -105,7 +107,19 @@
     }
 
     handleScroll() {
-      this.$backdrop.scrollTop(this.$el.scrollTop());
+      if (!this.backScrolling) {
+        this.$backdrop.scrollTop(this.$el.scrollTop());
+        this.frontScrolling = true;
+      }
+      this.backScrolling = false;
+    }
+
+    backdropScroll() {
+      if (!this.frontScrolling) {
+        this.$el.scrollTop(this.$backdrop.scrollTop());
+        this.backScrolling = true;
+      }
+      this.frontScrolling = false;
     }
 
     blockContainerScroll() {

@@ -254,14 +254,15 @@ window.getTextNodeAtPosition = (root, index) => {
 
   setTimeout(() => {
     main.highlightWithinTextarea([]);
-    document.execCommand('insertBrOnReturn', false, false);
 
     const value = window.fixHtml(main.contents());
     const current = txtHistory.current();
     if (value !== current) {
       corrections.css({ backgroundColor: 'darkmagenta' });
       corrections.html('<div class="loader"></div>');
-      main.html(current);
+      main.html(
+        current.replace(new RegExp('<div></div>', 'g'), '<div><br></div>'),
+      );
     }
 
     const words = localStorage.getItem('added');
@@ -326,7 +327,8 @@ window.getTextNodeAtPosition = (root, index) => {
           .replace(/</g, '&lt;')
           .replace(/>/g, '&gt;')
           .replace(/\r\n/gm, '</div><div>')
-          .replace(/\n/gm, '</div><div>') +
+          .replace(/\n/gm, '</div><div>')
+          .replace(new RegExp('<div></div>', 'g'), '<div><br></div>') +
         '</div>';
 
       main.html(html);
@@ -343,7 +345,10 @@ window.getTextNodeAtPosition = (root, index) => {
       if (!reader.result) return;
 
       const html = DOMPurify.sanitize(
-        decodeURIComponent(escape(window.atob(reader.result))),
+        decodeURIComponent(escape(window.atob(reader.result))).replace(
+          new RegExp('<div></div>', 'g'),
+          '<div><br></div>',
+        ),
         {
           ALLOWED_TAGS: ['div', 'font', 'b', 'u', 'i', 'strike'],
           ALLOWED_ATTR: ['style', 'color'],
@@ -388,14 +393,22 @@ window.getTextNodeAtPosition = (root, index) => {
 
   $('button[data-tippy-content="Undo"]').on('click', () => {
     if (txtHistory.undo(true) !== undefined) {
-      main.html(txtHistory.undo());
+      main.html(
+        txtHistory
+          .undo()
+          .replace(new RegExp('<div></div>', 'g'), '<div><br></div>'),
+      );
       socket.emit('check', main.get(0).innerText);
     }
   });
 
   $('button[data-tippy-content="Redo"]').on('click', () => {
     if (txtHistory.redo(true) !== undefined) {
-      main.html(txtHistory.redo());
+      main.html(
+        txtHistory
+          .redo()
+          .replace(new RegExp('<div></div>', 'g'), '<div><br></div>'),
+      );
       socket.emit('check', main.get(0).innerText);
     }
   });
