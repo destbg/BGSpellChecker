@@ -82,13 +82,20 @@
     }
 
     saveCaretPosition() {
-      const selection = document.getSelection();
-      const range = selection.getRangeAt(0);
-      range.setStart(this.$el.get(0), 0);
-      return range.toString().length;
+      try {
+        const selection = document.getSelection();
+        const range = selection.getRangeAt(0);
+        range.setStart(this.$el.get(0), 0);
+        return range.toString().length;
+      } catch (err) {
+        return undefined;
+      }
     }
 
     restoreCaretPosition(position) {
+      if (!position) {
+        return;
+      }
       const selection = document.getSelection();
       const pos = window.getTextNodeAtPosition(this.$el.get(0), position);
       selection.removeAllRanges();

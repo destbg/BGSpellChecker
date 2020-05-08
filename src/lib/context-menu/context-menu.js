@@ -37,7 +37,7 @@ class ContextMenu {
       listItem.html(matches[i].target);
       listItem.addClass('menu-option option-hover');
       listItem.on('click', () => {
-        window.replaceWord(this.parameters.word, matches[i].target);
+        window.replaceWord(this.parameters.word.trim(), matches[i].target);
         this.toggleMenu(false);
       });
       list.append(listItem);

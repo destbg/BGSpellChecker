@@ -127,19 +127,18 @@ window.getTextNodeAtPosition = (root, index) => {
       top: originalEvent.pageY,
       word:
         target.innerText.length === 0
-          ? target.parentElement.innerText
-          : target.innerText,
+          ? target.parentElement.innerText.trim()
+          : target.innerText.trim(),
     };
     socket.emit('similarity', contextMenu.parameters.word);
     return false;
   };
 
   window.replaceWord = (word, replace) => {
-    let ranges = window.getStringRanges(
+    const ranges = window.getStringRanges(
       main.get(0).innerText.toLowerCase(),
       word,
     );
-
     const mainElem = main.get(0);
     replace =
       word[0] === word[0].toUpperCase()
