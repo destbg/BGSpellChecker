@@ -83,7 +83,8 @@ window.getTextNodeAtPosition = (root, index) => {
   const charCount = $('#charCount');
   const wordCount = $('#wordCount');
   const corrections = $('#corrections');
-  const wordList = $('.dropdown-words');
+  const wordList = $('#addedWords');
+  const colorPicker = AColorPicker.from('.picker');
   const contextMenu = new ContextMenu();
   const txtHistory = new UndoRedoJs(5);
   const doneTypingInterval = 1000;
@@ -253,6 +254,7 @@ window.getTextNodeAtPosition = (root, index) => {
   });
 
   setTimeout(() => {
+    main.highlightWithinTextarea([]);
     document.execCommand('insertBrOnReturn', false, false);
 
     const value = window.fixHtml(main.contents());
@@ -314,16 +316,10 @@ window.getTextNodeAtPosition = (root, index) => {
     fontSize = undefined;
   }
 
-  AColorPicker.from('.picker').on('change', (picker) => {
-    document.execCommand('foreColor', false, picker.rgbhex);
-  });
-
-  $('#newFile').on('change', (event) => {
+  $('#textFile').on('change', (event) => {
     const reader = new FileReader();
     reader.onload = () => {
       if (!reader.result) return;
-
-      console.log(JSON.stringify(reader.result));
 
       const html =
         '<div>' +
@@ -342,11 +338,47 @@ window.getTextNodeAtPosition = (root, index) => {
     reader.readAsText(event.target.files[0]);
   });
 
-  $('button[data-tippy-content="Save"]').on('click', () => {
-    const text = main.get(0).innerText.replace(/\n/g, '\r\n'); // To retain the Line breaks.
+  $('#syntaxFile').on('change', (event) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (!reader.result) return;
+
+      const html = DOMPurify.sanitize(
+        decodeURIComponent(escape(window.atob(reader.result))),
+        {
+          ALLOWED_TAGS: ['div', 'font', 'b', 'u', 'i', 'strike'],
+          ALLOWED_ATTR: ['style', 'color'],
+        },
+      );
+
+      main.html(html);
+
+      optionUsed = true;
+      main.get(0).dispatchEvent(new Event('input'));
+    };
+    reader.readAsText(event.target.files[0]);
+  });
+
+  $('#saveText').on('click', () => {
+    const text = main.get(0).innerText.replace(/\n/g, '\r\n').trim();
     const blob = new Blob([text], { type: 'text/plain' });
     const anchor = document.createElement('a');
     anchor.download = 'text-file.txt';
+    anchor.href = window.URL.createObjectURL(blob);
+    anchor.target = '_blank';
+    anchor.style.display = 'none';
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+  });
+
+  $('#saveSyntax').on('click', () => {
+    const text = btoa(
+      unescape(encodeURIComponent(window.fixHtml(main.contents()))),
+    );
+    const blob = new Blob([text], { type: 'text/plain' });
+    const anchor = document.createElement('a');
+    anchor.download = 'syntax-file.bgnote';
     anchor.href = window.URL.createObjectURL(blob);
     anchor.target = '_blank';
     anchor.style.display = 'none';
@@ -369,32 +401,6 @@ window.getTextNodeAtPosition = (root, index) => {
     }
   });
 
-  $('.dropdown-content')
-    .children('li')
-    .on('click', ({ target }) => {
-      $(document.body).css({ fontSize: target.innerHTML + 'px' });
-      const font = parseFloat(
-        window
-          .getComputedStyle(document.body, null)
-          .getPropertyValue('font-size'),
-      );
-      localStorage.setItem('font', font + 'px');
-      const children = main.find('font');
-      if (children.length > 0) {
-        optionUsed = true;
-        children.css({
-          fontSize:
-            pageFontSize - font > 0
-              ? `+=${font - pageFontSize}px`
-              : `-=${pageFontSize - font}px`,
-        });
-      }
-      if (fontSize) {
-        fontSize += font - pageFontSize;
-      }
-      pageFontSize = font;
-    });
-
   $('button[data-tippy-content="Zoom in"]').on('click', () => {
     optionUsed = true;
     changeFontWithinTextarea(4);
@@ -403,6 +409,38 @@ window.getTextNodeAtPosition = (root, index) => {
   $('button[data-tippy-content="Zoom out"]').on('click', () => {
     optionUsed = true;
     changeFontWithinTextarea(-4);
+  });
+
+  wordList.children('li').on('click', ({ target }) => {
+    $(document.body).css({ fontSize: target.innerHTML + 'px' });
+    const font = parseFloat(
+      window
+        .getComputedStyle(document.body, null)
+        .getPropertyValue('font-size'),
+    );
+    localStorage.setItem('font', font + 'px');
+    const children = main.find('font');
+    if (children.length > 0) {
+      optionUsed = true;
+      children.css({
+        fontSize:
+          pageFontSize - font > 0
+            ? `+=${font - pageFontSize}px`
+            : `-=${pageFontSize - font}px`,
+      });
+    }
+    if (fontSize) {
+      fontSize += font - pageFontSize;
+    }
+    pageFontSize = font;
+  });
+
+  $('button[data-tippy-content="Change text color"]').on('click', () => {
+    document.execCommand('foreColor', false, colorPicker[0].rgbhex);
+  });
+
+  colorPicker.on('change', (picker) => {
+    document.execCommand('foreColor', false, picker.rgbhex);
   });
 
   $('button[data-tippy-content="Bold"]').on('click', () => {

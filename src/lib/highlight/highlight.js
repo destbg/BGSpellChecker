@@ -24,9 +24,6 @@
 
       // plugin function checks this for success
       this.isGenerated = true;
-
-      // trigger input event to highlight any existing input
-      this.handleInput();
     }
 
     handleInput() {
@@ -37,7 +34,9 @@
       }
       const ranges = this.getRanges(input, this.highlight);
       ranges.sort((a, b) => b[0] - a[0]);
+      const position = this.saveCaretPosition();
       this.renderMarks(ranges);
+      this.restoreCaretPosition(position);
       this.handleScroll();
     }
 
@@ -52,8 +51,8 @@
     renderMarks(ranges) {
       this.$highlights.html(window.fixHtml(this.$el.contents()));
       const highlightsElem = this.$highlights.get(0);
+      const selection = document.getSelection();
       ranges.forEach((range) => {
-        const selection = document.getSelection();
         const startPos = window.getTextNodeAtPosition(highlightsElem, range[0]);
         selection.removeAllRanges();
         let docRange = new Range();
@@ -76,11 +75,26 @@
           .replace(new RegExp('<span><h></h></span>', 'g'), '<span><h></h>')
           .replace(new RegExp('<span></span>', 'g'), '</span>'),
       );
-      this.$el.focus();
 
       this.$highlights.find('span').on('click', (ev) => {
         return window.openTextChecker(ev);
       });
+    }
+
+    saveCaretPosition() {
+      const selection = document.getSelection();
+      const range = selection.getRangeAt(0);
+      range.setStart(this.$el.get(0), 0);
+      return range.toString().length;
+    }
+
+    restoreCaretPosition(position) {
+      const selection = document.getSelection();
+      const pos = window.getTextNodeAtPosition(this.$el.get(0), position);
+      selection.removeAllRanges();
+      const range = new Range();
+      range.setStart(pos.node, pos.position);
+      selection.addRange(range);
     }
 
     handleScroll() {

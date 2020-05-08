@@ -107,3 +107,4 @@ dist
 
 # Copied files
 /src/lib/socket.io
+/src/lib/dompurify

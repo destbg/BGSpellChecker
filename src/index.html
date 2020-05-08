@@ -78,25 +78,48 @@
         <i class="fa fa-chevron-left"></i>
       </button>
       <ul id="optionsList">
-        <li class="option">
+        <li class="option dropdown">
           <label
-            for="newFile"
+            for="textFile"
             data-tippy-content="Open"
+            data-tippy-placement="right"
             style="cursor: pointer;"
           >
             <i class="fa fa-file"></i>
           </label>
-          <input
-            id="newFile"
-            type="file"
-            accept="text/plain"
-            style="display: none;"
-          />
+          <ul class="dropdown-words" style="margin: 0 0 0 -20px;">
+            <li>
+              <label for="textFile">Open Text File</label>
+              <input
+                id="textFile"
+                type="file"
+                accept="text/plain"
+                style="display: none;"
+              />
+            </li>
+            <li>
+              <label for="syntaxFile">Open Syntax File</label>
+              <input
+                id="syntaxFile"
+                type="file"
+                accept=".bgnote"
+                style="display: none;"
+              />
+            </li>
+          </ul>
         </li>
-        <li class="option">
-          <button data-tippy-content="Save">
+        <li class="option dropdown">
+          <button
+            id="saveText"
+            data-tippy-content="Save"
+            data-tippy-placement="right"
+          >
             <i class="fa fa-save"></i>
           </button>
+          <ul class="dropdown-words" style="margin: 0 0 0 -20px;">
+            <li id="saveText">Save Text File</li>
+            <li id="saveSyntax">Save Syntax File</li>
+          </ul>
         </li>
         <li class="option">
           <button data-tippy-content="Undo">
@@ -118,48 +141,41 @@
             <i class="fa fa-search-minus"></i>
           </button>
         </li>
-        <li class="option">
-          <div class="dropdown">
-            <button
-              data-tippy-content="Change global font size"
-              data-tippy-placement="right"
-            >
-              <i class="fa fa-font"></i>
-            </button>
-            <ul class="dropdown-content">
-              <li>8</li>
-              <li>9</li>
-              <li>10</li>
-              <li>11</li>
-              <li>12</li>
-              <li>14</li>
-              <li>16</li>
-              <li>18</li>
-              <li>20</li>
-              <li>22</li>
-              <li>24</li>
-              <li>26</li>
-              <li>28</li>
-              <li>36</li>
-              <li>48</li>
-              <li>72</li>
-            </ul>
-          </div>
+        <li class="option dropdown">
+          <button
+            data-tippy-content="Change global font size"
+            data-tippy-placement="right"
+          >
+            <i class="fa fa-font"></i>
+          </button>
+          <ul class="dropdown-content">
+            <li>8</li>
+            <li>9</li>
+            <li>10</li>
+            <li>11</li>
+            <li>12</li>
+            <li>14</li>
+            <li>16</li>
+            <li>18</li>
+            <li>20</li>
+            <li>22</li>
+            <li>24</li>
+            <li>26</li>
+            <li>28</li>
+            <li>36</li>
+            <li>48</li>
+            <li>72</li>
+          </ul>
         </li>
-        <li class="option">
-          <div class="dropdown">
-            <button
-              data-tippy-content="Change text color"
-              data-tippy-placement="left"
-            >
-              <i class="fa fa-adjust"></i>
-            </button>
-            <div
-              class="picker"
-              acp-show-rgb="no"
-              acp-show-hsl="no"
-              acp-show-hex="no"
-            ></div>
+        <li class="option dropdown">
+          <button
+            data-tippy-content="Change text color"
+            data-tippy-placement="left"
+          >
+            <i class="fa fa-adjust"></i>
+          </button>
+          <div class="picker-dropdown">
+            <div class="picker" acp-show-hsl="no" acp-show-hex="no"></div>
           </div>
         </li>
         <li class="option">
@@ -187,16 +203,14 @@
             <i class="fa fa-moon-o"></i>
           </button>
         </li>
-        <li class="option">
-          <div class="dropdown">
-            <button
-              data-tippy-content="List of added words"
-              data-tippy-placement="left"
-            >
-              <i class="fa fa-list"></i>
-            </button>
-            <ul class="dropdown-words"></ul>
-          </div>
+        <li class="option dropdown">
+          <button
+            data-tippy-content="List of added words"
+            data-tippy-placement="left"
+          >
+            <i class="fa fa-list"></i>
+          </button>
+          <ul id="addedWords" class="dropdown-words"></ul>
         </li>
         <li class="option">
           <button data-tippy-content="Help">
@@ -222,6 +236,7 @@
     <script src="https://unpkg.com/tippy.js@6"></script>
     <script src="https://cdn.jsdelivr.net/npm/a-color-picker@1.2.1/dist/acolorpicker.js"></script>
     <script src="lib\socket.io\socket.io.js"></script>
+    <script src="lib\dompurify\purify.js"></script>
     <script src="lib\jquery\jquery.js"></script>
     <script src="lib\highlight\highlight.js"></script>
     <script src="lib\context-menu\context-menu.js"></script>
