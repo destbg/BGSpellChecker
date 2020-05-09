@@ -14,19 +14,19 @@
   background-color: transparent !important;
 }
 
-.hwt-highlights span {
+.hwt-highlights hi {
   position: relative;
 }
 
 @media (max-width: 768px) {
-  .hwt-highlights span {
+  .hwt-highlights hi {
     position: relative;
     color: transparent;
     z-index: 1000;
   }
 }
 
-.hwt-highlights span h {
+.hwt-highlights hi h {
   display: inline-block;
   position: absolute;
   width: 100%;
@@ -41,7 +41,7 @@
   transition: height 100ms ease, bottom 100ms ease;
 }
 
-.hwt-highlights span:hover h {
+.hwt-highlights hi:hover h {
   height: 6px;
   bottom: -3px;
 }

@@ -29,7 +29,7 @@ window.getTextNodeAtPosition = (root, index) => {
     root,
     NodeFilter.SHOW_TEXT,
     function next(elem) {
-      if (index > elem.textContent.length) {
+      if (index >= elem.textContent.length) {
         index -= elem.textContent.length;
         return NodeFilter.FILTER_REJECT;
       }
@@ -96,9 +96,12 @@ window.getTextNodeAtPosition = (root, index) => {
     main.summernote('saveRange');
     main.highlightWithinTextarea(
       check,
-      $('<div>' + main.summernote('code') + '</div>')
-        .get(0)
-        .innerText.trim(),
+      main
+        .summernote('code')
+        .replace(/(<\/p>|<\/div>)/gi, '\n')
+        .replace(/<br\/?>/gi, '\n')
+        .replace(/<\/?[^>]+(>|$)/g, '')
+        .trim(),
       main.summernote('code'),
     );
     main.summernote('restoreRange');
@@ -122,7 +125,7 @@ window.getTextNodeAtPosition = (root, index) => {
 
     const text = main
       .summernote('code')
-      .replace(/<\/p>/gi, '\n')
+      .replace(/(<\/p>|<\/div>)/gi, '\n')
       .replace(/<br\/?>/gi, '\n')
       .replace(/<\/?[^>]+(>|$)/g, '')
       .trim();
@@ -190,9 +193,12 @@ window.getTextNodeAtPosition = (root, index) => {
 
   window.replaceWord = (word, replace) => {
     const ranges = window.getStringRanges(
-      $('<div>' + main.summernote('code') + '</div>')
-        .get(0)
-        .innerText.trim(),
+      main
+        .summernote('code')
+        .replace(/(<\/p>|<\/div>)/gi, '\n')
+        .replace(/<br\/?>/gi, '\n')
+        .replace(/<\/?[^>]+(>|$)/g, '')
+        .trim(),
       word,
     );
     replace =
@@ -288,7 +294,7 @@ window.getTextNodeAtPosition = (root, index) => {
       const html = DOMPurify.sanitize(
         decodeURIComponent(escape(window.atob(reader.result))),
         {
-          ALLOWED_TAGS: ['p', 'font', 'b', 'u', 'i', 'strike', 'span'],
+          ALLOWED_TAGS: ['p', 'font', 'b', 'u', 'i', 'strike', 'span', 'div'],
           ALLOWED_ATTR: ['style', 'color'],
         },
       );
@@ -304,7 +310,7 @@ window.getTextNodeAtPosition = (root, index) => {
   $('#saveText').on('click', () => {
     const text = main
       .summernote('code')
-      .replace(/<\/p>/gi, '\r\n')
+      .replace(/(<\/p>|<\/div>)/gi, '\r\n')
       .replace(/<br\/?>/gi, '\r\n')
       .replace(/<\/?[^>]+(>|$)/g, '')
       .trim();

@@ -48,25 +48,25 @@
         let docRange = new Range();
         docRange.setStart(startPos.node, startPos.position);
         selection.addRange(docRange);
-        const span = document.createElement('span');
-        span.append(document.createElement('h'));
-        docRange.insertNode(span);
+        const elem = document.createElement('hi');
+        elem.append(document.createElement('h'));
+        docRange.insertNode(elem);
         const endPos = window.getTextNodeAtPosition(highlightsElem, range[1]);
         selection.removeAllRanges();
         docRange = new Range();
         docRange.setStart(endPos.node, endPos.position);
         selection.addRange(docRange);
-        docRange.insertNode(document.createElement('span'));
+        docRange.insertNode(document.createElement('hi'));
       });
 
       this.$highlights.html(
         this.$highlights
           .html()
-          .replace(new RegExp('<span><h></h></span>', 'g'), '<span><h></h>')
-          .replace(new RegExp('<span></span>', 'g'), '</span>'),
+          .replace(new RegExp('<hi><h></h></hi>', 'g'), '<hi><h></h>')
+          .replace(new RegExp('<hi></hi>', 'g'), '</hi>'),
       );
 
-      this.$highlights.find('span').on('click', (ev) => {
+      this.$highlights.find('hi').on('click', (ev) => {
         return window.openTextChecker(ev);
       });
     }
