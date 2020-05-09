@@ -24,12 +24,14 @@ window.getStringRanges = (input, string) => {
   return ranges;
 };
 
-window.getTextNodeAtPosition = (root, index) => {
+window.getTextNodeAtPosition = (root, index, end) => {
   const treeWalker = document.createTreeWalker(
     root,
     NodeFilter.SHOW_TEXT,
     function next(elem) {
-      if (index >= elem.textContent.length) {
+      if (
+        end ? index > elem.textContent.length : index >= elem.textContent.length
+      ) {
         index -= elem.textContent.length;
         return NodeFilter.FILTER_REJECT;
       }
@@ -208,8 +210,16 @@ window.getTextNodeAtPosition = (root, index) => {
 
     main.summernote('saveRange');
     ranges.forEach((range) => {
-      const startPos = window.getTextNodeAtPosition(summernoteEditor, range[0]);
-      const endPos = window.getTextNodeAtPosition(summernoteEditor, range[1]);
+      const startPos = window.getTextNodeAtPosition(
+        summernoteEditor,
+        range[0],
+        false,
+      );
+      const endPos = window.getTextNodeAtPosition(
+        summernoteEditor,
+        range[1],
+        true,
+      );
       const sumRange = $.summernote.range.create(
         startPos.node,
         startPos.position,

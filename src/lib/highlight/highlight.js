@@ -43,7 +43,11 @@
       const highlightsElem = this.$highlights.get(0);
       const selection = document.getSelection();
       ranges.forEach((range) => {
-        const startPos = window.getTextNodeAtPosition(highlightsElem, range[0]);
+        const startPos = window.getTextNodeAtPosition(
+          highlightsElem,
+          range[0],
+          false,
+        );
         selection.removeAllRanges();
         let docRange = new Range();
         docRange.setStart(startPos.node, startPos.position);
@@ -51,7 +55,11 @@
         const elem = document.createElement('hi');
         elem.append(document.createElement('h'));
         docRange.insertNode(elem);
-        const endPos = window.getTextNodeAtPosition(highlightsElem, range[1]);
+        const endPos = window.getTextNodeAtPosition(
+          highlightsElem,
+          range[1],
+          true,
+        );
         selection.removeAllRanges();
         docRange = new Range();
         docRange.setStart(endPos.node, endPos.position);
