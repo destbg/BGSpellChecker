@@ -44,6 +44,18 @@ window.getTextNodeAtPosition = (root, index) => {
 };
 
 (() => {
+  const color = localStorage.getItem('color');
+  if (color && color === 'white') {
+    document.documentElement.setAttribute('color', 'white');
+    const element = document.getElementsByClassName('fa-moon-o')[0];
+    element.classList.remove('fa-moon-o');
+    element.classList.add('fa-sun-o');
+  }
+
+  tippy('[data-tippy-content]');
+})();
+
+(() => {
   const main = $('#main-textarea');
   const socket = io();
   const charCount = $('#charCount');
@@ -58,11 +70,11 @@ window.getTextNodeAtPosition = (root, index) => {
   let optionUsed = false;
   let typingTimer;
 
-  tippy('[data-tippy-content]');
   main.summernote({
     spellCheck: false,
     disableGrammar: true,
     disableDragAndDrop: true,
+    shortcuts: false,
     placeholder: 'Type here...',
     tabsize: 2,
     toolbar: [],
@@ -220,12 +232,9 @@ window.getTextNodeAtPosition = (root, index) => {
     main.highlightWithinTextarea([]);
     summernoteEditor = $('.note-editable').get(0);
 
-    const color = localStorage.getItem('color');
-    if (color && color === 'white') {
-      document.documentElement.setAttribute('color', 'white');
-      const element = document.getElementsByClassName('fa-moon-o')[0];
-      element.classList.remove('fa-moon-o');
-      element.classList.add('fa-sun-o');
+    const history = localStorage.getItem('history');
+    if (history) {
+      main.summernote('code', history);
     }
 
     const words = localStorage.getItem('added');
@@ -241,6 +250,13 @@ window.getTextNodeAtPosition = (root, index) => {
     optionUsed = true;
     textChanged();
   }, 100);
+
+  function saveText() {
+    localStorage.setItem('history', main.summernote('code'));
+  }
+
+  window.onbeforeunload = () => saveText();
+  window.onblur = () => saveText();
 
   $('#textFile').on('change', (event) => {
     const reader = new FileReader();
@@ -272,7 +288,7 @@ window.getTextNodeAtPosition = (root, index) => {
       const html = DOMPurify.sanitize(
         decodeURIComponent(escape(window.atob(reader.result))),
         {
-          ALLOWED_TAGS: ['div', 'font', 'b', 'u', 'i', 'strike'],
+          ALLOWED_TAGS: ['p', 'font', 'b', 'u', 'i', 'strike', 'span'],
           ALLOWED_ATTR: ['style', 'color'],
         },
       );
