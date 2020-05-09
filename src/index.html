@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Bulgarian Notepad</title>
     <link
+      href="https://cdn.jsdelivr.net/npm/summernote@0.8.16/dist/summernote-lite.min.css"
+      rel="stylesheet"
+    />
+    <link
       href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
       rel="stylesheet"
     />
@@ -25,37 +29,12 @@
             everything in the site in English
           </li>
           <li>
-            If the previous session's text is missing:
-            <ul>
-              <li>Enable browser cookies and history.</li>
-              <li>
-                Do not use browser's private/incognito mode. The text local
-                storage will be deleted by the browser when you close the
-                browser's window.
-              </li>
-            </ul>
-          </li>
-          <li>
             In order to correct a word click on the red underline and wait for
             the list of correct words to appear
           </li>
           <li>
             The circle on the bottom right will display the number of incorrect
             words
-          </li>
-          <li>
-            The saved notepad's text will be deleted when you delete your
-            browsing history/cache or run disk cleaning application (E.g.
-            Windows Disk cleanup / CCleaner).
-          </li>
-          <li>
-            The notepad's text is auto saved on page close and on tab blur.
-          </li>
-          <li>
-            The notepad's text will not be saved with private mode browsing.
-          </li>
-          <li>
-            To open saved file, look for the file in the Downloads folder.
           </li>
           <li>
             Save button saves the file to the Downloads folder. See:
@@ -131,24 +110,43 @@
             <i class="fa fa-repeat"></i>
           </button>
         </li>
-        <li class="option">
-          <button data-tippy-content="Zoom in">
-            <i class="fa fa-search-plus"></i>
+        <li class="option dropdown">
+          <button data-tippy-content="Style" data-tippy-placement="left">
+            <i class="fa fa-magic"></i>
           </button>
-        </li>
-        <li class="option">
-          <button data-tippy-content="Zoom out">
-            <i class="fa fa-search-minus"></i>
-          </button>
+          <ul id="fontStyle" class="dropdown-words" style="margin-top: 0;">
+            <li>Normal</li>
+            <li>
+              <blockquote>Blockquote</blockquote>
+            </li>
+            <li>
+              <h1>Header 1</h1>
+            </li>
+            <li>
+              <h2>Header 2</h2>
+            </li>
+            <li>
+              <h3>Header 3</h3>
+            </li>
+            <li>
+              <h4>Header 4</h4>
+            </li>
+            <li>
+              <h5>Header 5</h5>
+            </li>
+            <li>
+              <h6>Header 6</h6>
+            </li>
+          </ul>
         </li>
         <li class="option dropdown">
           <button
-            data-tippy-content="Change global font size"
+            data-tippy-content="Change font size"
             data-tippy-placement="right"
           >
             <i class="fa fa-font"></i>
           </button>
-          <ul class="dropdown-content">
+          <ul id="fontSize" class="dropdown-content">
             <li>8</li>
             <li>9</li>
             <li>10</li>
@@ -208,7 +206,7 @@
             data-tippy-content="List of added words"
             data-tippy-placement="left"
           >
-            <i class="fa fa-list"></i>
+            <i class="fa fa-etsy"></i>
           </button>
           <ul id="addedWords" class="dropdown-words"></ul>
         </li>
@@ -223,7 +221,7 @@
       </button>
     </div>
     <div class="middle">
-      <div id="main-textarea" contenteditable="true" spellcheck="false"></div>
+      <div id="main-textarea"></div>
     </div>
     <footer>
       <p>characters <span id="charCount">0</span></p>
@@ -232,16 +230,20 @@
         <div class="loader"></div>
       </div>
     </footer>
+    <script
+      src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+      integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+      crossorigin="anonymous"
+    ></script>
     <script src="https://unpkg.com/@popperjs/core@2"></script>
     <script src="https://unpkg.com/tippy.js@6"></script>
     <script src="https://cdn.jsdelivr.net/npm/a-color-picker@1.2.1/dist/acolorpicker.js"></script>
-    <script src="lib\socket.io\socket.io.js"></script>
-    <script src="lib\dompurify\purify.js"></script>
-    <script src="lib\jquery\jquery.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.16/dist/summernote-lite.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.0.11/purify.min.js"></script>
     <script src="lib\highlight\highlight.js"></script>
     <script src="lib\context-menu\context-menu.js"></script>
     <script src="lib\options-menu\options-menu.js"></script>
-    <script src="lib\undo-redo\UndoRedo.js"></script>
     <script src="main.js"></script>
   </body>
 </html>

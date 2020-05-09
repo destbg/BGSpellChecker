@@ -10,6 +10,7 @@
   --color-eight: #323537;
   --color-nine: #3d4043;
   --color-ten: #c5c1b9;
+  --color-eleven: #ad080b;
   --color-twelve: #351010;
 }
 
@@ -24,6 +25,7 @@
   --color-eight: #3d3d3d;
   --color-nine: #3d4043;
   --color-ten: #6b6b6b;
+  --color-eleven: #f86466;
   --color-twelve: #ffabab;
 }
 
@@ -93,11 +95,9 @@ input[type='button'] {
   cursor: pointer;
 }
 
-br {
-  content: ' ';
-}
-br:after {
-  content: ' ';
+blockquote {
+  padding: 10px 20px;
+  border-left: 5px solid var(--color-eleven);
 }
 
 /* HELP */
@@ -143,21 +143,36 @@ br:after {
 
 /* TEXTAREA */
 .middle {
+  position: relative;
   height: calc(100% - 98px);
 }
 
-#main-textarea {
-  width: 100vw;
+.note-editing-area {
   height: 100%;
-  resize: none;
-  border: hidden;
+}
+
+.note-editor.note-airframe .note-editing-area .note-editable,
+.note-editor.note-frame .note-editing-area .note-editable {
+  background-color: var(--color-one);
+  color: var(--color-two);
+  height: 100%;
   padding: 0 20px;
 }
 
-#main-textarea:empty:not(:focus):before {
-  content: 'Type here...';
-  color: var(--color-two);
-  font-style: italic;
+.note-frame {
+  width: 100vw;
+  height: 100%;
+  z-index: 1;
+}
+
+.note-editor.note-airframe,
+.note-editor.note-frame {
+  border: none;
+}
+
+.note-editor.note-airframe .note-placeholder,
+.note-editor.note-frame .note-placeholder {
+  padding: 0 20px;
 }
 
 /* Footer */

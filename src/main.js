@@ -1,20 +1,3 @@
-window.fixHtml = (elements) => {
-  let input = '';
-  for (const elem of elements) {
-    const type = elem.localName;
-    if (type && type !== 'br') {
-      const html = elem.outerHTML;
-      input +=
-        html.slice(0, html.indexOf('>') + 1) +
-        window.fixHtml(elem.childNodes) +
-        html.slice(html.lastIndexOf('<'));
-    } else {
-      input += elem.textContent.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
-  }
-  return input;
-};
-
 window.getStringRanges = (input, string) => {
   const ranges = [];
   const str = string.toLowerCase();
@@ -61,23 +44,6 @@ window.getTextNodeAtPosition = (root, index) => {
 };
 
 (() => {
-  const color = localStorage.getItem('color');
-  if (color && color === 'white') {
-    document.documentElement.setAttribute('color', 'white');
-    const element = document.getElementsByClassName('fa-moon-o')[0];
-    element.classList.remove('fa-moon-o');
-    element.classList.add('fa-sun-o');
-  }
-
-  const fontSize = localStorage.getItem('font');
-  if (fontSize && document.body.offsetWidth > 768) {
-    $(document.body).css({ fontSize });
-  }
-
-  tippy('[data-tippy-content]');
-})();
-
-(() => {
   const main = $('#main-textarea');
   const socket = io();
   const charCount = $('#charCount');
@@ -86,33 +52,48 @@ window.getTextNodeAtPosition = (root, index) => {
   const wordList = $('#addedWords');
   const colorPicker = AColorPicker.from('.picker');
   const contextMenu = new ContextMenu();
-  const txtHistory = new UndoRedoJs(5);
   const doneTypingInterval = 1000;
+  let summernoteEditor;
   let addedWords = [];
   let optionUsed = false;
   let typingTimer;
-  let pageFontSize;
-  let fontSize;
+
+  tippy('[data-tippy-content]');
+  main.summernote({
+    spellCheck: false,
+    disableGrammar: true,
+    disableDragAndDrop: true,
+    placeholder: 'Type here...',
+    tabsize: 2,
+    toolbar: [],
+  });
+
+  $('.note-statusbar').remove();
+  main.summernote('focus');
 
   socket.on('checked', (check) => {
     const checkLowered = check.map((f) => f.toLowerCase());
     const indexes = addedWords
       .map((f) => checkLowered.indexOf(f))
       .filter((f) => f !== -1);
+    indexes.sort((a, b) => b - a);
     for (const index of indexes) {
       check.splice(index, 1);
     }
 
-    main.highlightWithinTextarea(check);
-    if (check.length > 0) {
-      corrections.css({
-        backgroundColor: 'darkred',
-      });
-    } else {
-      corrections.css({
-        backgroundColor: 'darkmagenta',
-      });
-    }
+    main.summernote('saveRange');
+    main.highlightWithinTextarea(
+      check,
+      $('<div>' + main.summernote('code') + '</div>')
+        .get(0)
+        .innerText.trim(),
+      main.summernote('code'),
+    );
+    main.summernote('restoreRange');
+
+    corrections.css({
+      backgroundColor: check.length > 0 ? 'darkred' : 'darkmagenta',
+    });
     corrections.html(check.length);
   });
 
@@ -120,46 +101,33 @@ window.getTextNodeAtPosition = (root, index) => {
     contextMenu.createMenu(matches);
   });
 
-  window.openTextChecker = ({ originalEvent, target }) => {
-    originalEvent.preventDefault();
-    contextMenu.parameters = {
-      left: originalEvent.pageX,
-      top: originalEvent.pageY,
-      word:
-        target.innerText.length === 0
-          ? target.parentElement.innerText.trim()
-          : target.innerText.trim(),
-    };
-    socket.emit('similarity', contextMenu.parameters.word);
-    return false;
-  };
+  function textChanged() {
+    clearTimeout(typingTimer);
+    if (!corrections.html().includes('div')) {
+      corrections.css({ backgroundColor: 'darkmagenta' });
+      corrections.html('<div class="loader"></div>');
+    }
 
-  window.replaceWord = (word, replace) => {
-    const ranges = window.getStringRanges(
-      main.get(0).innerText.toLowerCase(),
-      word,
-    );
-    const mainElem = main.get(0);
-    replace =
-      word[0] === word[0].toUpperCase()
-        ? replace[0].toUpperCase() + replace.slice(1)
-        : replace;
+    const text = main
+      .summernote('code')
+      .replace(/<\/p>/gi, '\n')
+      .replace(/<br\/?>/gi, '\n')
+      .replace(/<\/?[^>]+(>|$)/g, '')
+      .trim();
+    charCount.html(text.length);
+    wordCount.html(text.split(' ').filter((f) => f !== '').length);
 
-    ranges.forEach((range) => {
-      const selection = document.getSelection();
-      const startPos = window.getTextNodeAtPosition(mainElem, range[0]);
-      const endPos = window.getTextNodeAtPosition(mainElem, range[1]);
-      selection.removeAllRanges();
-      const docRange = new Range();
-      docRange.setStart(startPos.node, startPos.position);
-      docRange.setEnd(endPos.node, endPos.position);
-      selection.addRange(docRange);
-      document.execCommand('insertText', false, replace);
-    });
-
-    optionUsed = true;
-    mainElem.dispatchEvent(new Event('input'));
-  };
+    if (!optionUsed) {
+      const timerMultiplier = Math.pow(Math.log10(text.length), 0.65);
+      typingTimer = setTimeout(
+        () => socket.emit('check', text),
+        (timerMultiplier > 1 ? timerMultiplier : 1) * doneTypingInterval,
+      );
+    } else {
+      socket.emit('check', text);
+      optionUsed = false;
+    }
+  }
 
   function addWordToDiv(word) {
     const li = $('<li></li>');
@@ -176,11 +144,25 @@ window.getTextNodeAtPosition = (root, index) => {
         wordList.html('<li>No words added</li>');
       }
       localStorage.setItem('added', JSON.stringify(addedWords));
-      checkText();
+      textChanged();
     });
     li.append(i);
     wordList.append(li);
   }
+
+  window.openTextChecker = ({ originalEvent, target }) => {
+    originalEvent.preventDefault();
+    contextMenu.parameters = {
+      left: originalEvent.pageX,
+      top: originalEvent.pageY,
+      word:
+        target.innerText.length === 0
+          ? target.parentElement.innerText.trim()
+          : target.innerText.trim(),
+    };
+    socket.emit('similarity', contextMenu.parameters.word);
+    return false;
+  };
 
   window.addWord = (word) => {
     word = word.toLowerCase();
@@ -191,78 +173,59 @@ window.getTextNodeAtPosition = (root, index) => {
     addWordToDiv(word);
 
     localStorage.setItem('added', JSON.stringify(addedWords));
-    checkText();
+    textChanged();
   };
 
-  function checkText() {
-    const value = window.fixHtml(main.contents());
-    const current = txtHistory.current();
-    if (current !== value) {
-      // Check for pastes, auto corrects..
-      if (
-        value.length - current.length > 2 ||
-        value.length - current.length < -2 ||
-        value.length - current.length === 0
-      ) {
-        // Record the textarea value and force to bypass cooldown
-        txtHistory.record(value, true);
-        // Check for single key press, single character paste..
-      } else {
-        // Record the textarea value
-        txtHistory.record(value);
-      }
-    }
+  window.replaceWord = (word, replace) => {
+    const ranges = window.getStringRanges(
+      $('<div>' + main.summernote('code') + '</div>')
+        .get(0)
+        .innerText.trim(),
+      word,
+    );
+    replace =
+      word[0] === word[0].toUpperCase()
+        ? replace[0].toUpperCase() + replace.slice(1)
+        : replace;
 
-    socket.emit('check', main.get(0).innerText);
-  }
+    main.summernote('saveRange');
+    ranges.forEach((range) => {
+      const startPos = window.getTextNodeAtPosition(summernoteEditor, range[0]);
+      const endPos = window.getTextNodeAtPosition(summernoteEditor, range[1]);
+      const sumRange = $.summernote.range.create(
+        startPos.node,
+        startPos.position,
+        endPos.node,
+        endPos.position,
+      );
+      sumRange.pasteHTML(replace);
+    });
+    main.summernote('restoreRange');
 
-  main.on('click', () => {
+    optionUsed = true;
+    textChanged();
+  };
+
+  main.on('summernote.focus', () => {
     if (contextMenu.menuVisible) {
       contextMenu.toggleMenu(false);
     }
   });
 
-  main.on('input', () => {
-    clearTimeout(typingTimer);
-    if (fontSize) {
-      fixFontSize();
-    }
-    if (!corrections.html().includes('div')) {
-      corrections.css({ backgroundColor: 'darkmagenta' });
-      corrections.html('<div class="loader"></div>');
-    }
-
-    if (main.text().length === 0) {
-      main.html('');
-    }
-
-    const value = main.get(0).innerText;
-    charCount.html(value.length);
-    wordCount.html(value.split(' ').filter((f) => f !== '').length);
-
-    if (!optionUsed) {
-      const timerMultiplier = Math.pow(Math.log10(value.length), 0.75);
-      typingTimer = setTimeout(
-        () => checkText(),
-        (timerMultiplier > 1 ? timerMultiplier : 1) * doneTypingInterval,
-      );
-    } else {
-      checkText();
-      optionUsed = false;
-    }
+  main.on('summernote.change', () => {
+    textChanged();
   });
 
   setTimeout(() => {
     main.highlightWithinTextarea([]);
+    summernoteEditor = $('.note-editable').get(0);
 
-    const value = window.fixHtml(main.contents());
-    const current = txtHistory.current();
-    if (value !== current) {
-      corrections.css({ backgroundColor: 'darkmagenta' });
-      corrections.html('<div class="loader"></div>');
-      main.html(
-        current.replace(new RegExp('<div></div>', 'g'), '<div><br></div>'),
-      );
+    const color = localStorage.getItem('color');
+    if (color && color === 'white') {
+      document.documentElement.setAttribute('color', 'white');
+      const element = document.getElementsByClassName('fa-moon-o')[0];
+      element.classList.remove('fa-moon-o');
+      element.classList.add('fa-sun-o');
     }
 
     const words = localStorage.getItem('added');
@@ -275,46 +238,9 @@ window.getTextNodeAtPosition = (root, index) => {
       wordList.html('<li>No words added</li>');
     }
 
-    checkText();
+    optionUsed = true;
+    textChanged();
   }, 100);
-
-  function saveText() {
-    localStorage.setItem('text', JSON.stringify(txtHistory.stack));
-  }
-
-  window.onbeforeunload = () => saveText();
-  window.onblur = () => saveText();
-
-  function changeFontWithinTextarea(size) {
-    const selection = document.getSelection();
-    const parent = selection.focusNode.parentElement;
-    const selectionType = selection.type;
-    document.execCommand('fontSize', false, 1);
-    if (parent.localName === 'font') {
-      fontSize = parseFloat(parent.style.fontSize.replace('px', '')) + size;
-    } else {
-      fontSize =
-        parseFloat(
-          window
-            .getComputedStyle(document.body, null)
-            .getPropertyValue('font-size'),
-        ) + size;
-    }
-    if (selectionType === 'Range') {
-      fixFontSize();
-    }
-    main.focus();
-  }
-
-  function fixFontSize() {
-    for (const font of main.find('font')) {
-      if (font.hasAttribute('size')) {
-        font.removeAttribute('size');
-        font.style.fontSize = fontSize + 'px';
-      }
-    }
-    fontSize = undefined;
-  }
 
   $('#textFile').on('change', (event) => {
     const reader = new FileReader();
@@ -322,19 +248,18 @@ window.getTextNodeAtPosition = (root, index) => {
       if (!reader.result) return;
 
       const html =
-        '<div>' +
+        '<p>' +
         reader.result
           .replace(/</g, '&lt;')
           .replace(/>/g, '&gt;')
-          .replace(/\r\n/gm, '</div><div>')
-          .replace(/\n/gm, '</div><div>')
-          .replace(new RegExp('<div></div>', 'g'), '<div><br></div>') +
-        '</div>';
+          .replace(/\r\n/gm, '</p><p>')
+          .replace(/\n/gm, '</p><p>') +
+        '</p>';
 
-      main.html(html);
+      main.summernote('code', html);
 
       optionUsed = true;
-      main.get(0).dispatchEvent(new Event('input'));
+      textChanged();
     };
     reader.readAsText(event.target.files[0]);
   });
@@ -345,26 +270,28 @@ window.getTextNodeAtPosition = (root, index) => {
       if (!reader.result) return;
 
       const html = DOMPurify.sanitize(
-        decodeURIComponent(escape(window.atob(reader.result))).replace(
-          new RegExp('<div></div>', 'g'),
-          '<div><br></div>',
-        ),
+        decodeURIComponent(escape(window.atob(reader.result))),
         {
           ALLOWED_TAGS: ['div', 'font', 'b', 'u', 'i', 'strike'],
           ALLOWED_ATTR: ['style', 'color'],
         },
       );
 
-      main.html(html);
+      main.summernote('code', html);
 
       optionUsed = true;
-      main.get(0).dispatchEvent(new Event('input'));
+      textChanged();
     };
     reader.readAsText(event.target.files[0]);
   });
 
   $('#saveText').on('click', () => {
-    const text = main.get(0).innerText.replace(/\n/g, '\r\n').trim();
+    const text = main
+      .summernote('code')
+      .replace(/<\/p>/gi, '\r\n')
+      .replace(/<br\/?>/gi, '\r\n')
+      .replace(/<\/?[^>]+(>|$)/g, '')
+      .trim();
     const blob = new Blob([text], { type: 'text/plain' });
     const anchor = document.createElement('a');
     anchor.download = 'text-file.txt';
@@ -377,9 +304,7 @@ window.getTextNodeAtPosition = (root, index) => {
   });
 
   $('#saveSyntax').on('click', () => {
-    const text = btoa(
-      unescape(encodeURIComponent(window.fixHtml(main.contents()))),
-    );
+    const text = btoa(unescape(encodeURIComponent(main.summernote('code'))));
     const blob = new Blob([text], { type: 'text/plain' });
     const anchor = document.createElement('a');
     anchor.download = 'syntax-file.bgnote';
@@ -392,91 +317,72 @@ window.getTextNodeAtPosition = (root, index) => {
   });
 
   $('button[data-tippy-content="Undo"]').on('click', () => {
-    if (txtHistory.undo(true) !== undefined) {
-      main.html(
-        txtHistory
-          .undo()
-          .replace(new RegExp('<div></div>', 'g'), '<div><br></div>'),
-      );
-      socket.emit('check', main.get(0).innerText);
-    }
+    main.summernote('undo');
   });
 
   $('button[data-tippy-content="Redo"]').on('click', () => {
-    if (txtHistory.redo(true) !== undefined) {
-      main.html(
-        txtHistory
-          .redo()
-          .replace(new RegExp('<div></div>', 'g'), '<div><br></div>'),
-      );
-      socket.emit('check', main.get(0).innerText);
-    }
+    main.summernote('redo');
   });
 
-  $('button[data-tippy-content="Zoom in"]').on('click', () => {
-    optionUsed = true;
-    changeFontWithinTextarea(4);
-  });
+  $('#fontStyle')
+    .children('li')
+    .on('click', ({ target }) => {
+      switch (target.localName) {
+        case 'p':
+          main.summernote('formatPara');
+          break;
+        case 'blockquote':
+          main.summernote('editor.formatBlock', 'blockquote');
+          break;
+        case 'h1':
+          main.summernote('formatH1');
+          break;
+        case 'h2':
+          main.summernote('formatH2');
+          break;
+        case 'h3':
+          main.summernote('formatH3');
+          break;
+        case 'h4':
+          main.summernote('formatH4');
+          break;
+        case 'h5':
+          main.summernote('formatH5');
+          break;
+        case 'h6':
+          main.summernote('formatH6');
+          break;
+      }
+    });
 
-  $('button[data-tippy-content="Zoom out"]').on('click', () => {
-    optionUsed = true;
-    changeFontWithinTextarea(-4);
-  });
-
-  wordList.children('li').on('click', ({ target }) => {
-    $(document.body).css({ fontSize: target.innerHTML + 'px' });
-    const font = parseFloat(
-      window
-        .getComputedStyle(document.body, null)
-        .getPropertyValue('font-size'),
-    );
-    localStorage.setItem('font', font + 'px');
-    const children = main.find('font');
-    if (children.length > 0) {
-      optionUsed = true;
-      children.css({
-        fontSize:
-          pageFontSize - font > 0
-            ? `+=${font - pageFontSize}px`
-            : `-=${pageFontSize - font}px`,
-      });
-    }
-    if (fontSize) {
-      fontSize += font - pageFontSize;
-    }
-    pageFontSize = font;
-  });
+  $('#fontSize')
+    .children('li')
+    .on('click', ({ target }) => {
+      main.summernote('fontSize', parseInt(target.innerHTML));
+    });
 
   $('button[data-tippy-content="Change text color"]').on('click', () => {
-    document.execCommand('foreColor', false, colorPicker[0].rgbhex);
+    main.summernote('foreColor', colorPicker[0].rgbhex);
   });
 
   colorPicker.on('change', (picker) => {
-    document.execCommand('foreColor', false, picker.rgbhex);
+    main.summernote('foreColor', picker.rgbhex);
   });
 
   $('button[data-tippy-content="Bold"]').on('click', () => {
-    optionUsed = true;
-    document.execCommand('bold', false, null);
-    main.focus();
+    main.summernote('bold');
   });
 
   $('button[data-tippy-content="Italic"]').on('click', () => {
-    optionUsed = true;
-    document.execCommand('italic', false, null);
-    main.focus();
+    main.summernote('italic');
   });
 
   $('button[data-tippy-content="Underline"]').on('click', () => {
-    optionUsed = true;
-    document.execCommand('underline', false, null);
-    main.focus();
+    main.summernote('underline');
   });
 
   $('button[data-tippy-content="StrikeThrough"]').on('click', () => {
-    optionUsed = true;
-    document.execCommand('strikeThrough', false, null);
-    main.focus();
+    main.summernote('strikethrough');
   });
 
   $('button[data-tippy-content="Color"]').on('click', () => {

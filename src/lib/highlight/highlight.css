@@ -1,79 +1,38 @@
-.hwt-container {
-  width: 100%;
-  height: 100%;
-  display: inline-block;
-  position: relative;
-  overflow: hidden !important;
-  -webkit-text-size-adjust: none !important;
-}
-
-.hwt-backdrop {
-  position: absolute !important;
-  top: 0 !important;
-  right: -79px !important; /* Change this if you change the padding */
-  bottom: 0 !important;
-  left: 0 !important;
-  padding-right: 99px !important;
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
-  padding: 0 20px;
-}
-
 .hwt-highlights {
-  width: auto !important;
-  border-color: transparent !important;
-  color: transparent !important;
-  overflow: hidden !important;
-}
-
-.hwt-highlights font {
-  color: transparent !important;
-}
-
-.hwt-input {
-  display: block !important;
-  position: relative !important;
-  margin: 0;
-  padding: 0;
-  border-radius: 0;
-  font: inherit;
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
-}
-
-.hwt-content {
-  border: 1px solid;
-  background: none transparent !important;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  overflow-x: hidden;
-}
-
-.hwt-content div:empty {
-  height: 1.333em;
-}
-
-.hwt-content span {
-  position: relative;
   color: transparent;
+  overflow: auto;
+  padding: 0 20px;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.hwt-highlights * {
+  color: transparent !important;
+  background-color: transparent !important;
+}
+
+.hwt-highlights span {
+  position: relative;
 }
 
 @media (max-width: 768px) {
-  .hwt-content span {
+  .hwt-highlights span {
     position: relative;
     color: transparent;
     z-index: 1000;
   }
 }
 
-.hwt-content span h {
+.hwt-highlights span h {
   display: inline-block;
   position: absolute;
-  padding: 0 !important;
   width: 100%;
   height: 3px;
   bottom: -1px;
-  background-color: red;
+  background-color: red !important;
   border-radius: 5px;
   z-index: 1000;
   cursor: pointer;
@@ -82,7 +41,7 @@
   transition: height 100ms ease, bottom 100ms ease;
 }
 
-.hwt-content span:hover h {
+.hwt-highlights span:hover h {
   height: 6px;
   bottom: -3px;
 }
