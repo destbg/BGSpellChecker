@@ -17,11 +17,7 @@ class SpellChecker {
       return [];
     }
 
-    const textArr = new Set(
-      text
-        .split(/[!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~\s\da-zA-Z]/g)
-        .filter((word) => word && word !== word.toUpperCase()),
-    );
+    const textArr = new Set(text.match(/[а-я-]{2,}/gim));
 
     const outArr = [];
 

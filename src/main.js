@@ -5,14 +5,9 @@ window.getStringRanges = (input, string) => {
 
   while (((index = input.indexOf(str, index)), index !== -1)) {
     if (
-      (index <= 0 ||
-        input[index - 1].match(
-          /[!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~\s\da-zA-Z]/,
-        )) &&
+      (index <= 0 || !input[index - 1].match(/[а-я-]{2,}/i)) &&
       (index + str.length >= input.length ||
-        input[index + str.length].match(
-          /[!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~\s\da-zA-Z]/,
-        ))
+        !input[index + str.length].match(/[а-я-]{2,}/i))
     ) {
       const newLines =
         input.slice(0, index).length -
